@@ -15,7 +15,7 @@ public class HsqldbServer {
 
     static void startHsqlDbServer() throws IOException {
         final Server server = new Server();
-        server.setDatabasePath(0, "file:./target/application;sql.syntax_pgs=true");
+        server.setDatabasePath(0, "file:./target/application");
         server.setDatabaseName(0, "application");
         server.setPort(9191);
         server.setLogWriter(new PrintWriter(new BufferedWriter(new FileWriter("./target/hsqldb-server.log"))));
