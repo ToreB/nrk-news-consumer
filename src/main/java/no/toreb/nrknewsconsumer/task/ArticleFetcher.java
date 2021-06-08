@@ -34,7 +34,7 @@ public class ArticleFetcher {
     }
 
     public List<Article> fetch() {
-        log.debug("Fetch articles from {}", articlesFeedUrl);
+        log.info("Fetching articles from {}", articlesFeedUrl);
         final ResponseEntity<String> response = restTemplate.getForEntity(articlesFeedUrl, String.class);
         log.debug("Response: {}", response.getStatusCode());
         if (!response.getStatusCode().is2xxSuccessful()) {

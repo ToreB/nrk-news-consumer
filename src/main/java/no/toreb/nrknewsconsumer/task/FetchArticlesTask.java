@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -22,13 +23,16 @@ class FetchArticlesTask {
     @Transactional
     @Scheduled(fixedDelayString = "${task.fetch-articles.fixed-delay}",
                initialDelayString = "${task.fetch-articles.initial-delay}")
-    void run() {
+    public void run() {
         final List<Article> articles = articleFetcher.fetch();
 
-        final List<String> articleIds = articleRepository.distinctArticleIds();
+        final List<String> existingArticleIds = articleRepository.distinctArticleIds();
 
-        articles.stream()
-                .filter(article -> !articleIds.contains(article.getArticleId()))
-                .forEach(articleRepository::save);
+        final List<Article> newArticles = articles.stream()
+                                              .filter(article -> !existingArticleIds.contains(article.getArticleId()))
+                                              .collect(Collectors.toList());
+
+        log.info("Found {} new news articles", newArticles.size());
+        newArticles.forEach(articleRepository::save);
     }
 }
