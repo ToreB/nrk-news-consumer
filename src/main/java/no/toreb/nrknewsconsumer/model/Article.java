@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.annotation.Id;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Set;
 
 @Value
@@ -18,7 +18,7 @@ public class Article {
     String description;
     String link;
     String author;
-    LocalDateTime publishedAt;
+    OffsetDateTime publishedAt;
 
     Set<ArticleMedia> media;
     Set<ArticleCategory> categories;

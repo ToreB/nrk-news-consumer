@@ -45,7 +45,7 @@ public class ArticleFetcher {
         //noinspection ConstantConditions
         final JSONObject content = XML.toJSONObject(response.getBody(), true);
         final JSONArray items = content.getJSONObject("rss").getJSONObject("channel").getJSONArray("item");
-        final List<Article> articles = new ArrayList<>();
+        final Set<Article> articles = new HashSet<>();
         items.forEach(element -> {
             final JSONObject item = (JSONObject) element;
             final JSONArray categories = item.optJSONArray("category");
@@ -74,8 +74,7 @@ public class ArticleFetcher {
                                            .link(item.getString("link"))
                                            .author(item.optString("dc:creator", null))
                                            .publishedAt(OffsetDateTime.parse(item.getString("dc:date"))
-                                                                      .withOffsetSameInstant(ZoneOffset.UTC)
-                                                                      .toLocalDateTime())
+                                                                      .withOffsetSameInstant(ZoneOffset.UTC))
                                            .categories(articleCategories)
                                            .media(articleMedia)
                                            .build();
@@ -84,7 +83,7 @@ public class ArticleFetcher {
 
         log.debug("Fetched {} articles", articles.size());
 
-        return articles;
+        return new ArrayList<>(articles);
     }
 
     private String extractArticleId(final JSONObject item) {
