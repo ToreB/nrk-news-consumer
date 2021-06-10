@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
-function ArticleList() {
+function ArticleList({ articlesUrl }) {
     let [articles, setArticles] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:8080/articles")
+        fetch(articlesUrl)
             .then(res => res.json())
             .then(resultJson => setArticles(resultJson));
     }, []);

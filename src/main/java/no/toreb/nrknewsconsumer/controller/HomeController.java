@@ -1,18 +1,29 @@
 package no.toreb.nrknewsconsumer.controller;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 @Controller
-@RequiredArgsConstructor
 class HomeController {
 
     private final BuildProperties buildProperties;
 
-    @GetMapping({"/*"})
+    private final int serverPort;
+
+    private final String contextPath;
+
+    public HomeController(final BuildProperties buildProperties,
+                          @Value("${server.port}") final int serverPort,
+                          @Value("${server.servlet.context-path:}") final String contextPath) {
+        this.buildProperties = buildProperties;
+        this.serverPort = serverPort;
+        this.contextPath = contextPath;
+    }
+
+    @GetMapping({ "/*"})
     public String index() {
         return "index";
     }
@@ -20,5 +31,10 @@ class HomeController {
     @ModelAttribute("buildProperties")
     private BuildProperties buildProperties() {
         return buildProperties;
+    }
+
+    @ModelAttribute("articlesUrl")
+    private String articlesUrl() {
+        return String.format("http://localhost:%d/%sarticles", serverPort, contextPath);
     }
 }

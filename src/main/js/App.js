@@ -9,7 +9,7 @@ import Navigation from "./common/Navigation";
 import HomePage from "./home/HomePage";
 import InfoPage from "./info/InfoPage";
 
-function App({ buildProperties }) {
+function App({ buildProperties, articlesUrl }) {
 
     const theme = createMuiTheme({
         palette: {
@@ -33,7 +33,7 @@ function App({ buildProperties }) {
                             <InfoPage buildProperties={buildProperties} />
                         </Route>
                         <Route path="/">
-                            <HomePage />
+                            <HomePage articlesUrl={articlesUrl}/>
                         </Route>
                     </Switch>
                 </main>
