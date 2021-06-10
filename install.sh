@@ -2,7 +2,13 @@
 
 first_arg=$1
 if [ -z "$first_arg" ]; then
+  set -o pipefail
   mvn clean verify | tee
+  ret_val=$?
+  set +o pipefail
+  if [ $ret_val == 1 ]; then
+    exit 1;
+  fi
 fi
 
 app_name='nrk-news-consumer'
