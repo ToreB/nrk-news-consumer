@@ -18,8 +18,8 @@ class ArticleController {
     private final ArticleRepository articleRepository;
 
     @GetMapping
-    public List<Article> getAll(@RequestParam(value = "page", defaultValue = "0") final long page,
+    public List<Article> getAll(@RequestParam(value = "page", defaultValue = "1") final long page,
                                 @RequestParam(value = "size", defaultValue = "10") final long size) {
-        return articleRepository.findAll(size, page * size);
+        return articleRepository.findAll(size, (page - 1) * size);
     }
 }
