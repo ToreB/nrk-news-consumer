@@ -69,6 +69,7 @@ function ArticleList({ baseUrl, mode }) {
                 <Button style={buttonStyle}
                         onClick={() => {
                             loadArticles();
+                            window.scrollTo(0, 0);
                         }}>Reload</Button>
                 <Button style={buttonStyle}
                         disabled={articles.length === 0 || toggledArticles.length > 0}
