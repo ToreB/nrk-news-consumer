@@ -48,6 +48,7 @@ import static org.mockito.Mockito.when;
 class NrkNewsConsumerApplicationTests {
 
     @MockBean
+    @SuppressWarnings("unused")
     private BuildProperties buildProperties;
 
     @MockBean
@@ -77,13 +78,13 @@ class NrkNewsConsumerApplicationTests {
                                        ArgumentMatchers.<Object>any()))
                 .thenReturn(ResponseEntity.ok(String.join("", testFeedContent)));
 
-        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
-            assertThat(articleRepository.count()).isEqualTo(98);
-        });
+        await().atMost(Duration.ofSeconds(30))
+               .untilAsserted(() -> assertThat(articleRepository.count()).isEqualTo(98));
     }
 
     @Test
     @Order(20)
+    @SuppressWarnings("Convert2Diamond")
     void shouldProvideRestApiForFetchingArticles() {
         final List<Article> articles = getAllArticles();
         final List<Article> firstPage = articles.stream()
@@ -150,6 +151,7 @@ class NrkNewsConsumerApplicationTests {
 
     @Test
     @Order(40)
+    @SuppressWarnings("Convert2Diamond")
     void shouldProvideRestApiForFetchingHiddenArticles() {
         assertEmptyArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden"),
                                                               HttpMethod.GET,
