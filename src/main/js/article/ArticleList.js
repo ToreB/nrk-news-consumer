@@ -1,18 +1,24 @@
 import { Button, Grid, Switch } from "@material-ui/core";
 import React, { useEffect, useState } from 'react';
 
-function fetchArticles(url, page) {
-    return fetch(`${url}/articles?size=12&page=${page}`)
+export const Mode = {
+    NON_HIDDEN: "non-hidden",
+    HIDDEN: "hidden"
+};
+
+function fetchArticles(baseUrl, page, mode) {
+    let path = mode === Mode.HIDDEN ? "/articles/hidden" : "/articles";
+    return fetch(`${baseUrl}${path}?size=12&page=${page}`)
         .then(res => res.json());
 }
 
-function toggleArticleVisibility(url, articleId, hide, successCallback) {
+function toggleArticleVisibility(baseUrl, articleId, hide, successCallback) {
     let requestOptions = {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ articleId, hide })
     };
-    fetch(`${url}/articles/hide`, requestOptions)
+    fetch(`${baseUrl}/articles/hidden`, requestOptions)
         .then(res => {
             if (res.status >= 200 && res.status < 300) {
                 successCallback();
@@ -20,23 +26,23 @@ function toggleArticleVisibility(url, articleId, hide, successCallback) {
         });
 }
 
-function ArticleList({ baseUrl }) {
+function ArticleList({ baseUrl, mode }) {
     let [articles, setArticles] = useState([]);
     let [page, setPage] = useState(1);
-    let [hiddenArticles, setHiddenArticles] = useState([]);
+    let [toggledArticles, setToggledArticles] = useState([]);
 
-    let toggleArticleVisibilityFunction = (articleId, hide, callback) => {
-        toggleArticleVisibility(baseUrl, articleId, hide, callback)
-        if (hide) {
-            setHiddenArticles([...hiddenArticles, articleId])
+    let toggleArticleVisibilityFunction = (articleId, toggled, callback) => {
+        toggleArticleVisibility(baseUrl, articleId, toggled, callback)
+        if (toggled) {
+            setToggledArticles([...toggledArticles, articleId])
         } else {
-            setHiddenArticles(hiddenArticles.filter(article => article !== articleId))
+            setToggledArticles(toggledArticles.filter(article => article !== articleId))
         }
     };
 
     let loadArticles = () => {
-        fetchArticles(baseUrl, page).then(resultJson => setArticles(resultJson))
-        setHiddenArticles([]);
+        fetchArticles(baseUrl, page, mode).then(resultJson => setArticles(resultJson))
+        setToggledArticles([]);
     };
 
     useEffect(() => loadArticles(), [page]);
@@ -49,28 +55,31 @@ function ArticleList({ baseUrl }) {
     return (
         <div id="articles">
             <Grid container>
-                {articles.map(article => <ArticleElement key={article.articleId}
-                                                         article={article}
-                                                         toggleArticleVisibilityFunction={toggleArticleVisibilityFunction} />)}
+                {articles.map(article => {
+                    return <ArticleElement key={article.articleId}
+                                           article={article}
+                                           initiallyHidden={mode === Mode.HIDDEN}
+                                           toggleArticleVisibilityFunction={toggleArticleVisibilityFunction} />
+                })}
             </Grid>
             <div id="pagination">
                 <Button style={buttonStyle}
-                        disabled={page === 1 || hiddenArticles.length > 0}
+                        disabled={page === 1 || toggledArticles.length > 0}
                         onClick={() => setPage(page - 1)}>Previous</Button>
                 <Button style={buttonStyle}
                         onClick={() => {
                             loadArticles();
                         }}>Reload</Button>
                 <Button style={buttonStyle}
-                        disabled={hiddenArticles.length > 0}
+                        disabled={articles.length === 0 || toggledArticles.length > 0}
                         onClick={() => setPage(page + 1)}>Next</Button>
             </div>
         </div>
     );
 }
 
-function ArticleElement({ article, toggleArticleVisibilityFunction }) {
-    let [hidden, setHidden] = useState(false);
+function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunction }) {
+    let [hidden, setHidden] = useState(initiallyHidden);
 
     let itemStyle = {
         border: '1px solid black',
@@ -78,7 +87,7 @@ function ArticleElement({ article, toggleArticleVisibilityFunction }) {
         margin: '10px 10px 10px',
         padding: '15px 25px',
         maxWidth: '400px',
-        backgroundColor: hidden ? 'lightGray': 'white'
+        backgroundColor: hidden ? 'lightGray' : 'white'
     };
 
     let titleStyle = {
@@ -92,7 +101,6 @@ function ArticleElement({ article, toggleArticleVisibilityFunction }) {
         marginTop: '0px',
         textAlign: 'left'
     };
-    let hideSwitchStyle = {}
 
     let images = article.media.filter(media => media.medium === 'image');
 
@@ -103,8 +111,7 @@ function ArticleElement({ article, toggleArticleVisibilityFunction }) {
                     <p style={publishedStyle}>{formatDate(article.publishedAt)}</p>
                 </Grid>
                 <Grid item container justify="flex-end" xs={6}>
-                    <Switch style={hideSwitchStyle}
-                            checked={hidden}
+                    <Switch checked={hidden}
                             onChange={() => toggleArticleVisibilityFunction(
                                 article.articleId,
                                 !hidden, () => setHidden(!hidden))}

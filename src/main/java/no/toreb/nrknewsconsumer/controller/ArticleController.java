@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/articles")
+@RequestMapping("/api/articles")
 @RequiredArgsConstructor
 class ArticleController {
 
@@ -33,7 +33,7 @@ class ArticleController {
         return articleRepository.findAllHidden(size, (page - 1) * size);
     }
 
-    @PutMapping("/hide")
+    @PutMapping("/hidden")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void hide(@RequestBody final HideArticleRequest request) {
         if (request.isHide()) {

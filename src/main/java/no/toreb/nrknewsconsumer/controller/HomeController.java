@@ -36,7 +36,7 @@ class HomeController {
 
     @ModelAttribute("baseUrl")
     private String baseUrl() {
-        return String.format("http://localhost:%d%s",
+        return String.format("http://localhost:%d%s/api",
                              serverPort, StringUtils.hasLength(contextPath) ? "/" + contextPath : "");
     }
 }

@@ -3,10 +3,11 @@ import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import ThemeProvider from "@material-ui/styles/ThemeProvider";
 import React from 'react';
 import { Route, Switch } from "react-router-dom";
+import HiddenArticlesPage from "./article/HiddenArticlesPage";
+import NonHiddenArticlesPage from "./article/NonHiddenArticlesPage";
 import Footer from './common/Footer';
 import Header from "./common/Header";
 import Navigation from "./common/Navigation";
-import HomePage from "./home/HomePage";
 import InfoPage from "./info/InfoPage";
 
 function App({ buildProperties, baseUrl }) {
@@ -32,8 +33,11 @@ function App({ buildProperties, baseUrl }) {
                         <Route path="/info">
                             <InfoPage buildProperties={buildProperties} />
                         </Route>
+                        <Route path="/hidden-articles">
+                            <HiddenArticlesPage baseUrl={baseUrl} />
+                        </Route>
                         <Route path="/">
-                            <HomePage baseUrl={baseUrl}/>
+                            <NonHiddenArticlesPage baseUrl={baseUrl} />
                         </Route>
                     </Switch>
                 </main>

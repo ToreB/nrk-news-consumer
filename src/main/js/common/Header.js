@@ -24,7 +24,8 @@ function Header({ appName }) {
                     <Typography className={classes.title} variant="h6">{appName}</Typography>
 
                     <nav>
-                        <Button color="inherit" component={Link} to="/">Home</Button>
+                        <Button color="inherit" component={Link} to="/">Articles</Button>
+                        <Button color="inherit" component={Link} to="/hidden-articles">Hidden articles</Button>
                         <Button color="inherit" component={Link} to="/info">Info</Button>
                     </nav>
                 </Toolbar>
