@@ -3,6 +3,7 @@ package no.toreb.nrknewsconsumer.controller;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -33,8 +34,9 @@ class HomeController {
         return buildProperties;
     }
 
-    @ModelAttribute("articlesUrl")
-    private String articlesUrl() {
-        return String.format("http://localhost:%d/%sarticles", serverPort, contextPath);
+    @ModelAttribute("baseUrl")
+    private String baseUrl() {
+        return String.format("http://localhost:%d%s",
+                             serverPort, StringUtils.hasLength(contextPath) ? "/" + contextPath : "");
     }
 }

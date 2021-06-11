@@ -9,15 +9,15 @@ import Navigation from "./common/Navigation";
 import HomePage from "./home/HomePage";
 import InfoPage from "./info/InfoPage";
 
-function App({ buildProperties, articlesUrl }) {
+function App({ buildProperties, baseUrl }) {
 
     const theme = createMuiTheme({
         palette: {
             primary: {
-                main: red[500]
+                main: blue[500]
             },
             secondary: {
-                main: blue[500]
+                main: red[500]
             }
         }
     });
@@ -33,7 +33,7 @@ function App({ buildProperties, articlesUrl }) {
                             <InfoPage buildProperties={buildProperties} />
                         </Route>
                         <Route path="/">
-                            <HomePage articlesUrl={articlesUrl}/>
+                            <HomePage baseUrl={baseUrl}/>
                         </Route>
                     </Switch>
                 </main>

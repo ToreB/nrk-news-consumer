@@ -2,10 +2,10 @@ import { Container } from "@material-ui/core";
 import React from 'react';
 import ArticleList from "./ArticleList";
 
-function HomePage({ articlesUrl }) {
+function HomePage({ baseUrl }) {
     return (
         <Container maxWidth={false} style={{ marginLeft: "unset" }}>
-            <ArticleList articlesUrl={articlesUrl} />
+            <ArticleList baseUrl={baseUrl} />
         </Container>
     );
 }
