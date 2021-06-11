@@ -7,7 +7,6 @@ import no.toreb.nrknewsconsumer.model.ArticleMedia;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -23,18 +22,14 @@ import java.util.Set;
 @Component
 public class ArticleFetcher {
 
-    private final String articlesFeedUrl;
-
     private final RestTemplate restTemplate;
 
-    public ArticleFetcher(final RestTemplate restTemplate,
-                          @Value("${articles-feed-url}") final String articlesFeedUrl) {
+    public ArticleFetcher(final RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        this.articlesFeedUrl = articlesFeedUrl;
     }
 
-    public List<Article> fetch() {
-        log.info("Fetching articles from {}", articlesFeedUrl);
+    public List<Article> fetch(final String articlesFeedUrl) {
+        log.info("Fetching articles from {}.", articlesFeedUrl);
         final ResponseEntity<String> response = restTemplate.getForEntity(articlesFeedUrl, String.class);
         log.debug("Response: {}", response.getStatusCode());
         if (!response.getStatusCode().is2xxSuccessful()) {
@@ -44,7 +39,9 @@ public class ArticleFetcher {
 
         //noinspection ConstantConditions
         final JSONObject content = XML.toJSONObject(response.getBody(), true);
-        final JSONArray items = content.getJSONObject("rss").getJSONObject("channel").getJSONArray("item");
+        final JSONArray items = content.getJSONObject("rss")
+                                       .getJSONObject("channel")
+                                       .getJSONArray("item");
         final Set<Article> articles = new HashSet<>();
         items.forEach(element -> {
             final JSONObject item = (JSONObject) element;
@@ -81,7 +78,7 @@ public class ArticleFetcher {
             articles.add(article);
         });
 
-        log.debug("Fetched {} articles", articles.size());
+        log.debug("Fetched {} articles from {}.", articles.size(), articlesFeedUrl);
 
         return new ArrayList<>(articles);
     }

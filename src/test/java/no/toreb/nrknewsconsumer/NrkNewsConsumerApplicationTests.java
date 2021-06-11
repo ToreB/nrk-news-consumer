@@ -41,15 +41,16 @@ class NrkNewsConsumerApplicationTests {
     @Test
     void shouldScheduledTaskToFetchesArticles() throws IOException {
         //noinspection ConstantConditions
-        final List<String> testFeedContent = IOUtils.readLines(getClass().getResourceAsStream("/test-feed.rss"),
-                                                               Charset.defaultCharset());
+        final List<String> testFeedContent =
+                IOUtils.readLines(getClass().getResourceAsStream("/test-feed-toppsaker.rss"),
+                                  Charset.defaultCharset());
         when(restTemplate.getForEntity(any(),
                                        ArgumentMatchers.<Class<String>>any(),
                                        ArgumentMatchers.<Object>any()))
                 .thenReturn(ResponseEntity.ok(String.join("", testFeedContent)));
 
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
-            assertThat(articleRepository.count()).isGreaterThan(0);
+            assertThat(articleRepository.count()).isEqualTo(98);
         });
     }
 
