@@ -43,6 +43,7 @@ function ArticleList({ apiContextPath, mode }) {
     let loadArticles = () => {
         fetchArticles(apiContextPath, page, mode).then(resultJson => setArticles(resultJson))
         setToggledArticles([]);
+        window.scrollTo(0, 0);
     };
 
     useEffect(() => loadArticles(), [page]);
@@ -67,10 +68,7 @@ function ArticleList({ apiContextPath, mode }) {
                         disabled={page === 1 || toggledArticles.length > 0}
                         onClick={() => setPage(page - 1)}>Previous</Button>
                 <Button style={buttonStyle}
-                        onClick={() => {
-                            loadArticles();
-                            window.scrollTo(0, 0);
-                        }}>Reload</Button>
+                        onClick={() => loadArticles()}>Reload</Button>
                 <Button style={buttonStyle}
                         disabled={articles.length === 0 || toggledArticles.length > 0}
                         onClick={() => setPage(page + 1)}>Next</Button>
