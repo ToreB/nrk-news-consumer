@@ -6,19 +6,19 @@ export const Mode = {
     HIDDEN: "hidden"
 };
 
-function fetchArticles(baseUrl, page, mode) {
-    let path = mode === Mode.HIDDEN ? "/articles/hidden" : "/articles";
-    return fetch(`${baseUrl}${path}?size=12&page=${page}`)
+function fetchArticles(apiContextPath, page, mode) {
+    let path = `${apiContextPath}/articles${mode === Mode.HIDDEN ? "/hidden" : ""}`;
+    return fetch(`${path}?size=12&page=${page}`)
         .then(res => res.json());
 }
 
-function toggleArticleVisibility(baseUrl, articleId, hide, successCallback) {
+function toggleArticleVisibility(apiContextPath, articleId, hide, successCallback) {
     let requestOptions = {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ articleId, hide })
     };
-    fetch(`${baseUrl}/articles/hidden`, requestOptions)
+    fetch(`${apiContextPath}/articles/hidden`, requestOptions)
         .then(res => {
             if (res.status >= 200 && res.status < 300) {
                 successCallback();
@@ -26,13 +26,13 @@ function toggleArticleVisibility(baseUrl, articleId, hide, successCallback) {
         });
 }
 
-function ArticleList({ baseUrl, mode }) {
+function ArticleList({ apiContextPath, mode }) {
     let [articles, setArticles] = useState([]);
     let [page, setPage] = useState(1);
     let [toggledArticles, setToggledArticles] = useState([]);
 
     let toggleArticleVisibilityFunction = (articleId, toggled, callback) => {
-        toggleArticleVisibility(baseUrl, articleId, toggled, callback)
+        toggleArticleVisibility(apiContextPath, articleId, toggled, callback)
         if (toggled) {
             setToggledArticles([...toggledArticles, articleId])
         } else {
@@ -41,7 +41,7 @@ function ArticleList({ baseUrl, mode }) {
     };
 
     let loadArticles = () => {
-        fetchArticles(baseUrl, page, mode).then(resultJson => setArticles(resultJson))
+        fetchArticles(apiContextPath, page, mode).then(resultJson => setArticles(resultJson))
         setToggledArticles([]);
     };
 

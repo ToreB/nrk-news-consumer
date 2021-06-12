@@ -10,7 +10,7 @@ import Header from "./common/Header";
 import Navigation from "./common/Navigation";
 import InfoPage from "./info/InfoPage";
 
-function App({ buildProperties, baseUrl }) {
+function App({ buildProperties, apiContextPath }) {
 
     const theme = createMuiTheme({
         palette: {
@@ -34,10 +34,10 @@ function App({ buildProperties, baseUrl }) {
                             <InfoPage buildProperties={buildProperties} />
                         </Route>
                         <Route path="/hidden-articles">
-                            <HiddenArticlesPage baseUrl={baseUrl} />
+                            <HiddenArticlesPage apiContextPath={apiContextPath} />
                         </Route>
                         <Route path="/">
-                            <NonHiddenArticlesPage baseUrl={baseUrl} />
+                            <NonHiddenArticlesPage apiContextPath={apiContextPath} />
                         </Route>
                     </Switch>
                 </main>
