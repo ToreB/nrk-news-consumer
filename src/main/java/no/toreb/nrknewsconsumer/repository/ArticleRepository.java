@@ -24,7 +24,7 @@ public interface ArticleRepository extends CrudRepository<Article, Long> {
 
     @Query("select * from article " +
            "where GEN_ID in (select article from hidden_articles) " +
-           "order by PUBLISHED_AT limit :limit offset :offset")
+           "order by PUBLISHED_AT desc limit :limit offset :offset")
     List<Article> findAllHidden(@Param("limit") long limit, @Param("offset") long offset);
 
     @Modifying

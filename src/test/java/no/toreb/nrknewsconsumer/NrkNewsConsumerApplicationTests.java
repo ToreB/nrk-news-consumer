@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -158,12 +157,15 @@ class NrkNewsConsumerApplicationTests {
                                                               null,
                                                               new ParameterizedTypeReference<List<Article>>() {}));
 
-        final List<Article> articles = getAllArticles();
-        IntStream.range(0, 20).mapToObj(articles::get).forEach(article -> hideArticle(article, true));
+        getAllArticles()
+                .stream()
+                .limit(20)
+                .forEach(article -> hideArticle(article, true));
 
         final List<Article> hiddenArticles = IterableUtil.toCollection(articleRepository.findAllHidden(1000, 0))
                                                          .stream()
-                                                         .sorted(Comparator.comparing(Article::getPublishedAt))
+                                                         .sorted(Comparator.comparing(Article::getPublishedAt)
+                                                                           .reversed())
                                                          .collect(Collectors.toList());
         final List<Article> firstPage = hiddenArticles.stream()
                                                       .limit(10)
