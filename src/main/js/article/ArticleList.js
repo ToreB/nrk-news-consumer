@@ -105,6 +105,8 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
 
     let images = article.media.filter(media => media.medium === 'image');
 
+    let toggleHidden = () => toggleArticleVisibilityFunction(article.articleId, !hidden, () => setHidden(!hidden));
+
     return (
         <Grid item key={article.articleId} style={itemStyle} xs={12}>
             <Grid container alignItems="baseline">
@@ -113,14 +115,14 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
                 </Grid>
                 <Grid item container justify="flex-end" xs={6}>
                     <Switch checked={hidden}
-                            onChange={() => toggleArticleVisibilityFunction(
-                                article.articleId,
-                                !hidden, () => setHidden(!hidden))}
+                            onChange={toggleHidden}
                             size="medium" />
                 </Grid>
             </Grid>
             <div style={{ clear: 'both' }}>
-                <a target="_blank" href={article.link}><p style={titleStyle}>{article.title}</p></a>
+                <a target="_blank"
+                   href={article.link}
+                   onClick={toggleHidden}><p style={titleStyle}>{article.title}</p></a>
                 <p>{article.description}</p>
                 {images.map((image, i) => <img key={i} src={image.url} alt={image.title} width="100%" />)}
             </div>
