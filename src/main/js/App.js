@@ -3,6 +3,7 @@ import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import ThemeProvider from "@material-ui/styles/ThemeProvider";
 import React from 'react';
 import { Route, Switch } from "react-router-dom";
+import Covid19ArticlesPage from "./article/Covid19ArticlesPage";
 import HiddenArticlesPage from "./article/HiddenArticlesPage";
 import NonHiddenArticlesPage from "./article/NonHiddenArticlesPage";
 import Footer from './common/Footer';
@@ -35,6 +36,9 @@ function App({ buildProperties, apiContextPath }) {
                         </Route>
                         <Route path="/hidden-articles">
                             <HiddenArticlesPage apiContextPath={apiContextPath} />
+                        </Route>
+                        <Route path="/covid-19">
+                            <Covid19ArticlesPage apiContextPath={apiContextPath} />
                         </Route>
                         <Route path="/">
                             <NonHiddenArticlesPage apiContextPath={apiContextPath} />

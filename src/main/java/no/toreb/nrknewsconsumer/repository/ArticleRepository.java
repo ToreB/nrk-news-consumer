@@ -19,13 +19,27 @@ public interface ArticleRepository extends CrudRepository<Article, Long> {
 
     @Query("select * from article " +
            "where GEN_ID not in (select article from hidden_articles) " +
-           "order by PUBLISHED_AT limit :limit offset :offset")
+           "order by PUBLISHED_AT, GEN_ID " +
+           "limit :limit " +
+           "offset :offset")
     List<Article> findAll(@Param("limit") long limit, @Param("offset") long offset);
 
     @Query("select * from article " +
            "where GEN_ID in (select article from hidden_articles) " +
-           "order by PUBLISHED_AT desc limit :limit offset :offset")
+           "order by PUBLISHED_AT desc, GEN_ID " +
+           "limit :limit " +
+           "offset :offset")
     List<Article> findAllHidden(@Param("limit") long limit, @Param("offset") long offset);
+
+    @Query("select distinct a.* " +
+           "from article a " +
+           "left outer join article_category ac on a.gen_id = ac.article " +
+           "where a.GEN_ID not in (select article from hidden_articles) " +
+           "and (lower(ac.CATEGORY) like '%korona%' or lower(ac.CATEGORY) like '%covid%19%') " +
+           "order by a.PUBLISHED_AT, a.GEN_ID " +
+           "limit :limit " +
+           "offset :offset")
+    List<Article> findAllCovid19(@Param("limit") long limit, @Param("offset") long offset);
 
     @Modifying
     @Query("insert into hidden_articles (article) " +

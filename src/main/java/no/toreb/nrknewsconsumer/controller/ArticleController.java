@@ -33,6 +33,12 @@ class ArticleController {
         return articleRepository.findAllHidden(size, (page - 1) * size);
     }
 
+    @GetMapping("/covid-19")
+    public List<Article> getAllCovid19(@RequestParam(value = "page", defaultValue = "1") final long page,
+                                       @RequestParam(value = "size", defaultValue = "10") final long size) {
+        return articleRepository.findAllCovid19(size, (page - 1) * size);
+    }
+
     @PutMapping("/hidden")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void hide(@RequestBody final HideArticleRequest request) {

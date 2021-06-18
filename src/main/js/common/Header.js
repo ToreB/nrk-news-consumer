@@ -25,6 +25,7 @@ function Header({ appName }) {
 
                     <nav>
                         <Button color="inherit" component={Link} to="/">Articles</Button>
+                        <Button color="inherit" component={Link} to="/covid-19">Covid-19</Button>
                         <Button color="inherit" component={Link} to="/hidden-articles">Hidden articles</Button>
                         <Button color="inherit" component={Link} to="/info">Info</Button>
                     </nav>

@@ -3,11 +3,21 @@ import React, { useEffect, useState } from 'react';
 
 export const Mode = {
     NON_HIDDEN: "non-hidden",
-    HIDDEN: "hidden"
+    HIDDEN: "hidden",
+    COVID_19: "covid-19"
 };
 
 function fetchArticles(apiContextPath, page, mode) {
-    let path = `${apiContextPath}/articles${mode === Mode.HIDDEN ? "/hidden" : ""}`;
+    let path = `${apiContextPath}/articles`;
+    switch (mode) {
+        case Mode.HIDDEN:
+            path += "/hidden";
+            break;
+        case Mode.COVID_19:
+            path += "/covid-19"
+            break;
+    }
+
     return fetch(`${path}?size=12&page=${page}`)
         .then(res => res.json());
 }

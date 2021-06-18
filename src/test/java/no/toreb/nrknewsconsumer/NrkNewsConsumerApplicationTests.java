@@ -123,8 +123,56 @@ class NrkNewsConsumerApplicationTests {
     private List<Article> getAllArticles() {
         return IterableUtil.toCollection(articleRepository.findAll())
                            .stream()
-                           .sorted(Comparator.comparing(Article::getPublishedAt))
+                           .sorted(Comparator.comparing(Article::getPublishedAt)
+                                             .thenComparing(Article::getGenId))
                            .collect(Collectors.toList());
+    }
+
+    @Test
+    @Order(21)
+    @SuppressWarnings("Convert2Diamond")
+    void shouldProvideRestApiForFetchingCovid19Articles() {
+        final List<Article> covid19Articles =
+                getAllArticles()
+                        .stream()
+                        .filter(article -> article.getCategories()
+                                                  .stream()
+                                                  .anyMatch(it -> it.getCategory()
+                                                                    .toLowerCase()
+                                                                    .matches("(korona.*|covid[ -]?19)")))
+                        .collect(Collectors.toList());
+        final List<Article> firstPage = covid19Articles.stream()
+                                                       .limit(10)
+                                                       .collect(Collectors.toList());
+        final List<Article> secondPage = covid19Articles.stream()
+                                                        .skip(10)
+                                                        .limit(10)
+                                                        .collect(Collectors.toList());
+        final List<Article> thirdPageSize5 = covid19Articles.stream()
+                                                            .skip(10)
+                                                            .limit(5)
+                                                            .collect(Collectors.toList());
+
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=1&size=10"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=2"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                               secondPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=3&size=5"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                               thirdPageSize5);
     }
 
     @Test
