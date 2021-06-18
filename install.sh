@@ -55,7 +55,7 @@ function release_version {
   git commit -m "New version $version"
   git tag "v$version"
 
-  set_version "$snapshot"
+  set_version "$snapshot-SNAPSHOT"
   git_add
   git commit -m "New snapshot version $snapshot"
 }
@@ -71,7 +71,7 @@ if [ -z "$new_version" ]; then
 fi
 next_snapshot="$2"
 if [ -z "$next_snapshot" ]; then
-  echo "Needs to specify next snapshot version as second argument."
+  echo "Needs to specify next snapshot version as second argument (do not suffix with -SNAPSHOT)."
   exit 1
 fi
 
