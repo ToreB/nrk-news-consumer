@@ -113,14 +113,14 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
                 </Grid>
                 <Grid item container justify="flex-end" xs={6}>
                     <Switch checked={hidden}
-                            onChange={toggleHidden}
+                            onChange={() => toggleHidden(!hidden)}
                             size="medium" />
                 </Grid>
             </Grid>
             <div style={{ clear: 'both' }}>
                 <a target="_blank"
                    href={article.link}
-                   onClick={toggleHidden}><p style={titleStyle}>{article.title}</p></a>
+                   onClick={() => toggleHidden(true)}><p style={titleStyle}>{article.title}</p></a>
                 <p>{article.description}</p>
                 {images.map((image, i) => <img key={i} src={image.url} alt={image.title} width="100%" />)}
             </div>
