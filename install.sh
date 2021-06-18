@@ -55,7 +55,7 @@ function release_version {
   git commit -m "New version $version"
   git tag "v$version"
 
-  set_version "$snapshot-SNAPSHOT"
+  set_version "$snapshot"
   git_add
   git commit -m "New snapshot version $snapshot"
 }
@@ -77,7 +77,7 @@ fi
 
 set_version "$new_version"
 build_jar
-release_version "$new_version" "$next_snapshot"
+release_version "$new_version" "$next_snapshot-SNAPSHOT"
 
 app_name='nrk-news-consumer'
 jar_file="$app_name.jar"
