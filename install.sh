@@ -5,7 +5,7 @@ function exit_if_uncommitted_changes {
   git diff-index --quiet HEAD -- "$path"
   ret_val=$?
   if [ $ret_val == 1 ]; then
-    echo "There are uncommitted git changes in '$path'."
+    echo "There are uncommitted git changes in '$path'"
     exit 1
   fi
 }
@@ -65,7 +65,8 @@ exit_if_uncommitted_changes "."
 
 new_version="$1"
 if [ -z "$new_version" ]; then
-  echo "Needs to specify new version as first argument."
+  echo "Needs to specify new version as first argument (do not prefix with v). Existing versions: "
+  git tag -l
   exit 1
 fi
 next_snapshot="$2"
