@@ -1,4 +1,4 @@
-import { Button, Grid, Switch } from "@material-ui/core";
+import { Button, Chip, Grid, Switch } from "@material-ui/core";
 import React, { useEffect, useState } from 'react';
 
 export const Mode = {
@@ -88,7 +88,6 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
         maxWidth: '400px',
         backgroundColor: hidden ? 'lightGray' : 'white'
     };
-
     let titleStyle = {
         fontSize: '20px',
         fontWeight: 'bold',
@@ -100,10 +99,15 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
         marginTop: '0px',
         textAlign: 'left'
     };
+    let chipStyle = {
+        marginRight: '5px',
+        marginTop: '5px'
+    };
 
     let images = article.media.filter(media => media.medium === 'image');
+    let categories = article.categories.map(it => it.category);
 
-    let toggleHidden = () => toggleArticleVisibilityFunction(article.articleId, !hidden, () => setHidden(!hidden));
+    let toggleHidden = hidden => toggleArticleVisibilityFunction(article.articleId, hidden, () => setHidden(hidden));
 
     return (
         <Grid item key={article.articleId} style={itemStyle} xs={12}>
@@ -123,6 +127,10 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
                    onClick={() => toggleHidden(true)}><p style={titleStyle}>{article.title}</p></a>
                 <p>{article.description}</p>
                 {images.map((image, i) => <img key={i} src={image.url} alt={image.title} width="100%" />)}
+                <div>
+                    {categories.map((category, i) =>
+                        <Chip key={i} label={category} variant="default" size="small" style={chipStyle} />)}
+                </div>
             </div>
         </Grid>
     );
