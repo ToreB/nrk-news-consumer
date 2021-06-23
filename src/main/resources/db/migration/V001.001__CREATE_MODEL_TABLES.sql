@@ -1,33 +1,33 @@
 create table article
 (
-    gen_id       bigint identity         not null,
-    article_id   varchar(4000)           not null,
-    title        varchar(4000)           not null,
-    description  varchar(4000),
-    link         varchar(4000)           not null,
-    author       varchar(4000),
-    published_at timestamp               not null,
-    created_at   timestamp default now() not null,
+    gen_id       integer not null,
+    article_id   text not null,
+    title        text not null,
+    description  text,
+    link         text not null,
+    author       text,
+    published_at text not null,
+    created_at   text default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) not null,
 
     constraint article_pk primary key (gen_id)
 );
 
 create table article_media
 (
-    article bigint        not null,
-    medium  varchar(4000) not null,
-    type    varchar(4000),
-    url     varchar(4000) not null,
-    credit  varchar(4000),
-    title   varchar(4000),
+    article integer not null,
+    medium  text    not null,
+    type    text,
+    url     text    not null,
+    credit  text,
+    title   text,
 
     constraint article_media_pk primary key (article, medium)
 );
 
 create table article_category
 (
-    article  bigint        not null,
-    category varchar(4000) not null,
+    article  integer not null,
+    category text    not null,
 
     constraint article_category_pk primary key (article, category)
 );

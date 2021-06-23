@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "task.fetch-toppsaker.enabled", havingValue = "true", matchIfMissing = true)
 class FetchToppsakerTask {
 
     private final ArticleRepository articleRepository;

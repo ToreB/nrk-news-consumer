@@ -23,6 +23,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.sqlite.SQLiteException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -34,12 +35,13 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = NrkNewsConsumerApplication.class,
                 properties = {
-                        "spring.datasource.url=jdbc:hsqldb:mem:testdb",
+                        "spring.datasource.url=jdbc:sqlite:file::memory:?cache=shared",
                         "spring.datasource.username=sa",
                         "logging.level.no.toreb=debug"
                 }, webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -77,8 +79,20 @@ class NrkNewsConsumerApplicationTests {
                                        ArgumentMatchers.<Object>any()))
                 .thenReturn(ResponseEntity.ok(String.join("", testFeedContent)));
 
-        await().atMost(Duration.ofSeconds(30))
-               .untilAsserted(() -> assertThat(articleRepository.count()).isEqualTo(98));
+        await().atMost(Duration.ofSeconds(30)).pollDelay(Duration.ofSeconds(1))
+               .untilAsserted(() -> {
+                   try {
+                       assertThat(articleRepository.count()).isEqualTo(98);
+                   } catch (final Exception e) {
+                       // Sqlite in-memory with shared cache throws exception if reading from db when other connection
+                       // is writing.
+                       if (e.getCause() instanceof SQLiteException) {
+                           fail();
+                       } else {
+                           throw e;
+                       }
+                   }
+               });
     }
 
     @Test

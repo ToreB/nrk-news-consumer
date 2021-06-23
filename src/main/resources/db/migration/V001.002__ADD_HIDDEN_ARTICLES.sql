@@ -1,3 +1,3 @@
 create table hidden_articles (
-    article bigint not null
+    article integer not null
 );
