@@ -13,10 +13,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -80,7 +81,9 @@ public class ArticleFetcher {
 
         log.debug("Fetched {} articles from {}.", articles.size(), articlesFeedUrl);
 
-        return new ArrayList<>(articles);
+        return articles.stream()
+                       .sorted(Comparator.comparing(Article::getPublishedAt))
+                       .collect(Collectors.toList());
     }
 
     private String extractArticleId(final JSONObject item) {
