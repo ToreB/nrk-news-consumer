@@ -23,7 +23,7 @@ function fetchArticles(apiContextPath, page, mode) {
 }
 
 function toggleArticleVisibility(apiContextPath, articleId, hide, successCallback) {
-    let requestOptions = {
+    const requestOptions = {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ articleId, hide })
@@ -37,11 +37,11 @@ function toggleArticleVisibility(apiContextPath, articleId, hide, successCallbac
 }
 
 function ArticleList({ apiContextPath, mode }) {
-    let [articles, setArticles] = useState([]);
-    let [page, setPage] = useState(1);
-    let [toggledArticles, setToggledArticles] = useState([]);
+    const [articles, setArticles] = useState([]);
+    const [page, setPage] = useState(1);
+    const [toggledArticles, setToggledArticles] = useState([]);
 
-    let toggleArticleVisibilityFunction = (articleId, toggled, callback) => {
+    const toggleArticleVisibilityFunction = (articleId, toggled, callback) => {
         toggleArticleVisibility(apiContextPath, articleId, toggled, callback)
         if (toggled) {
             setToggledArticles([...toggledArticles, articleId])
@@ -50,7 +50,7 @@ function ArticleList({ apiContextPath, mode }) {
         }
     };
 
-    let loadArticles = () => {
+    const loadArticles = () => {
         fetchArticles(apiContextPath, page, mode).then(resultJson => setArticles(resultJson))
         setToggledArticles([]);
         window.scrollTo(0, 0);
@@ -58,7 +58,7 @@ function ArticleList({ apiContextPath, mode }) {
 
     useEffect(() => loadArticles(), [page]);
 
-    let buttonStyle = {
+    const buttonStyle = {
         fontSize: '24px',
         marginRight: '30px'
     };
@@ -88,9 +88,12 @@ function ArticleList({ apiContextPath, mode }) {
 }
 
 function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunction }) {
-    let [hidden, setHidden] = useState(initiallyHidden);
+    const [hidden, setHidden] = useState(initiallyHidden);
 
-    let itemStyle = {
+    const images = article.media.filter(media => media.medium === 'image');
+    const categories = article.categories.map(it => it.category);
+
+    const itemStyle = {
         border: '1px solid black',
         borderRadius: '5px',
         margin: '10px 10px 10px',
@@ -98,26 +101,23 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
         maxWidth: '400px',
         backgroundColor: hidden ? 'lightGray' : 'white'
     };
-    let titleStyle = {
+    const titleStyle = {
         fontSize: '20px',
         fontWeight: 'bold',
         display: 'inline'
     };
-    let publishedStyle = {
+    const publishedStyle = {
         fontWeight: 'bold',
         fontSize: 'small',
         marginTop: '0px',
         textAlign: 'left'
     };
-    let chipStyle = {
+    const chipStyle = {
         marginRight: '5px',
         marginTop: '5px'
     };
 
-    let images = article.media.filter(media => media.medium === 'image');
-    let categories = article.categories.map(it => it.category);
-
-    let toggleHidden = hidden => toggleArticleVisibilityFunction(article.articleId, hidden, () => setHidden(hidden));
+    const toggleHidden = hidden => toggleArticleVisibilityFunction(article.articleId, hidden, () => setHidden(hidden));
 
     return (
         <Grid item key={article.articleId} style={itemStyle} xs={12}>
@@ -147,7 +147,7 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
 }
 
 function formatDate(dateString) {
-    let options = {
+    const options = {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
