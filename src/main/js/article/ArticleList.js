@@ -97,7 +97,7 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
         border: '1px solid black',
         borderRadius: '5px',
         margin: '10px 10px 10px',
-        padding: '15px 25px',
+        padding: '5px 25px 15px',
         maxWidth: '400px',
         backgroundColor: hidden ? 'lightGray' : 'white'
     };
@@ -114,7 +114,11 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
     };
     const chipStyle = {
         marginRight: '5px',
-        marginTop: '5px'
+        marginTop: '5px',
+    };
+    const chipStyleYtring = {
+        ...chipStyle,
+        backgroundColor: 'orange'
     };
 
     const toggleHidden = hidden => toggleArticleVisibilityFunction(article.articleId, hidden, () => setHidden(hidden));
@@ -139,7 +143,11 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
                 {images.map((image, i) => <img key={i} src={image.url} alt={image.title} width="100%" />)}
                 <div>
                     {categories.map((category, i) =>
-                        <Chip key={i} label={category} variant="default" size="small" style={chipStyle} />)}
+                        <Chip key={i}
+                              label={category}
+                              variant="default"
+                              size="small"
+                              style={category.toLowerCase() === 'ytring' ? chipStyleYtring : chipStyle} />)}
                 </div>
             </div>
         </Grid>
