@@ -50,8 +50,19 @@ function ArticleList({ apiContextPath, mode }) {
         }
     };
 
-    const loadArticles = () => {
-        fetchArticles(apiContextPath, page, mode).then(resultJson => setArticles(resultJson))
+    const loadArticles = (isReload = false) => {
+        fetchArticles(apiContextPath, page, mode)
+            .then(resultJson => {
+                if (!isReload) {
+                    setArticles(resultJson);
+                    return;
+                }
+
+                const newArticles = resultJson.map(article => {
+                    return { ...article, isNew: !articles.some(it => it.articleId === article.articleId) }
+                });
+                setArticles(newArticles);
+            })
         setToggledArticles([]);
         window.scrollTo(0, 0);
     };
@@ -78,7 +89,7 @@ function ArticleList({ apiContextPath, mode }) {
                         disabled={page === 1 || toggledArticles.length > 0}
                         onClick={() => setPage(page - 1)}>Previous</Button>
                 <Button style={buttonStyle}
-                        onClick={() => loadArticles()}>Reload</Button>
+                        onClick={() => loadArticles(true)}>Reload</Button>
                 <Button style={buttonStyle}
                         disabled={articles.length === 0 || toggledArticles.length > 0}
                         onClick={() => setPage(page + 1)}>Next</Button>
@@ -120,11 +131,21 @@ function ArticleElement({ article, initiallyHidden, toggleArticleVisibilityFunct
         ...chipStyle,
         backgroundColor: 'orange'
     };
+    const newArticleIndicatorStyle = {
+        height: '10px',
+        width: '10px',
+        borderRadius: '5px',
+        backgroundColor: 'green',
+        position: 'absolute',
+        marginLeft: '-18px',
+        marginTop: '2px'
+    };
 
     const toggleHidden = hidden => toggleArticleVisibilityFunction(article.articleId, hidden, () => setHidden(hidden));
 
     return (
         <Grid item key={article.articleId} style={itemStyle} xs={12}>
+            <div style={article.isNew ? newArticleIndicatorStyle : { display: 'None' }} />
             <Grid container alignItems="baseline">
                 <Grid item xs={6}>
                     <p style={publishedStyle}>{formatDate(article.publishedAt)}</p>
