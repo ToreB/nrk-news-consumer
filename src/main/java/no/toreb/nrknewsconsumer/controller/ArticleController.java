@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -22,9 +25,9 @@ class ArticleController {
     private final ArticleRepository articleRepository;
 
     @GetMapping
-    public List<Article> getAll(@RequestParam(value = "page", defaultValue = "1") final long page,
-                                @RequestParam(value = "size", defaultValue = "10") final long size) {
-        return articleRepository.findAll(size, (page - 1) * size);
+    public List<Article> getAllNonHidden(@RequestParam(value = "page", defaultValue = "1") final long page,
+                                         @RequestParam(value = "size", defaultValue = "10") final long size) {
+        return articleRepository.findAllNonHidden(size, (page - 1) * size);
     }
 
     @GetMapping("/hidden")
@@ -43,7 +46,10 @@ class ArticleController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void hide(@RequestBody final HideArticleRequest request) {
         if (request.isHide()) {
-            articleRepository.hideArticle(request.getArticleId());
+            articleRepository.hideArticle(request.getArticleId(),
+                                          OffsetDateTime.now()
+                                                        .withOffsetSameInstant(ZoneOffset.UTC)
+                                                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         } else {
             articleRepository.showArticle(request.getArticleId());
         }

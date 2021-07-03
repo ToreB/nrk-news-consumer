@@ -4,7 +4,6 @@ import no.toreb.nrknewsconsumer.controller.HideArticleRequest;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.util.IterableUtil;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -135,11 +133,7 @@ class NrkNewsConsumerApplicationTests {
     }
 
     private List<Article> getAllArticles() {
-        return IterableUtil.toCollection(articleRepository.findAll())
-                           .stream()
-                           .sorted(Comparator.comparing(Article::getPublishedAt)
-                                             .thenComparing(Article::getGenId))
-                           .collect(Collectors.toList());
+        return articleRepository.findAll();
     }
 
     @Test
@@ -224,11 +218,8 @@ class NrkNewsConsumerApplicationTests {
                 .limit(20)
                 .forEach(article -> hideArticle(article, true));
 
-        final List<Article> hiddenArticles = IterableUtil.toCollection(articleRepository.findAllHidden(1000, 0))
-                                                         .stream()
-                                                         .sorted(Comparator.comparing(Article::getPublishedAt)
-                                                                           .reversed())
-                                                         .collect(Collectors.toList());
+        final List<Article> hiddenArticles = articleRepository.findAllHidden(1000, 0);
+
         final List<Article> firstPage = hiddenArticles.stream()
                                                       .limit(10)
                                                       .collect(Collectors.toList());
