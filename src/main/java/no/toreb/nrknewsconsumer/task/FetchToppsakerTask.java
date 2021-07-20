@@ -67,7 +67,7 @@ class FetchToppsakerTask {
      * sleep or hibernation.
      * This should make the task fetch shortly after the OS wakes up.
      * 
-     * @return true if should sync, false otherwise.
+     * @return true if should fetch articles, false otherwise.
      */
     private boolean shouldFetch() {
         if (lastFetchTime == null) {
