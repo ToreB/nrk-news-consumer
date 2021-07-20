@@ -147,7 +147,11 @@ class NrkNewsConsumerApplicationTests {
                                                   .stream()
                                                   .anyMatch(it -> it.getCategory()
                                                                     .toLowerCase()
-                                                                    .matches("(korona.*|covid[ -]?19)")))
+                                                                    .matches("(.*?korona.*|covid[ -]?19)"))
+                                           || article.getDescription()
+                                                     .toLowerCase()
+                                                     .matches("(.*?korona.*|.*?covid[ -]?19.*?|.*?vaksine.*)")
+                                           || article.getTitle().toLowerCase().contains("vaksine"))
                         .collect(Collectors.toList());
         final List<Article> firstPage = covid19Articles.stream()
                                                        .limit(10)
