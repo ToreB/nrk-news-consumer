@@ -46,13 +46,16 @@ public interface ArticleRepository extends CrudRepository<Article, Long> {
            "left outer join article_category ac on a.gen_id = ac.article " +
            "left outer join hidden_articles ha on a.gen_id = ha.article " +
            "where ha.article is null " +
-           "and (lower(ac.CATEGORY) like '%korona%' " +
+           "and (lower(ac.category) like '%korona%' " +
            "    or lower(a.description) like '%korona%' " +
-           "    or lower(ac.CATEGORY) like '%covid%19%' " +
-           "    or lower(a.description) like '%covid%19' " +
+           "    or lower(a.title) like '%korona%' " +
+           "    or lower(ac.category) like '%covid%19%' " +
+           "    or lower(a.description) like '%covid%19%' " +
+           "    or lower(a.title) like '%covid%19%' " +
+           "    or lower(ac.category) like '%vaksine%' " +
            "    or lower(a.title) like '%vaksine%' " +
            "    or lower(a.description) like '%vaksine%') " +
-           "order by a.PUBLISHED_AT, a.GEN_ID " +
+           "order by a.published_at, a.gen_id " +
            "limit :limit " +
            "offset :offset")
     List<Article> findAllCovid19(@Param("limit") long limit, @Param("offset") long offset);
