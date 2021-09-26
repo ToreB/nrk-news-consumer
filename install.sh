@@ -65,8 +65,8 @@ exit_if_uncommitted_changes "."
 
 new_version="$1"
 if [ -z "$new_version" ]; then
-  echo "Needs to specify new version as first argument (do not prefix with v). Existing versions: "
-  git tag -l
+  echo "Needs to specify new version as first argument (do not prefix with v). Most recent existing versions: "
+  git tag --sort=-v:refname | head -n 3
   exit 1
 fi
 next_snapshot="$2"
