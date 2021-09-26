@@ -64,7 +64,8 @@ function ArticleList({ apiContextPath, mode }) {
 
     const toggleArticleVisibilityFunction = (articleId, toggled, callback) => {
         toggleArticleVisibility(apiContextPath, articleId, toggled, callback);
-        if (toggled) {
+        const markToggled = mode === Mode.HIDDEN ? !toggled : toggled;
+        if (markToggled) {
             setHiddenToggledArticles([...hiddenToggledArticles, articleId]);
         } else {
             setHiddenToggledArticles(hiddenToggledArticles.filter(id => id !== articleId));
