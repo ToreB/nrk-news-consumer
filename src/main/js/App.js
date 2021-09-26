@@ -1,5 +1,5 @@
 import { blue, red } from "@material-ui/core/colors";
-import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
+import createTheme from "@material-ui/core/styles/createTheme";
 import ThemeProvider from "@material-ui/styles/ThemeProvider";
 import React from 'react';
 import { Route, Switch } from "react-router-dom";
@@ -13,7 +13,7 @@ import InfoPage from "./info/InfoPage";
 
 function App({ buildProperties, apiContextPath }) {
 
-    const theme = createMuiTheme({
+    const theme = createTheme({
         palette: {
             primary: {
                 main: blue[500]
