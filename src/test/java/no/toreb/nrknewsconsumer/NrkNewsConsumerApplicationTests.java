@@ -5,6 +5,7 @@ import no.toreb.nrknewsconsumer.controller.ReadLaterRequest;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.sqlite.SQLiteException;
 
@@ -57,6 +59,9 @@ class NrkNewsConsumerApplicationTests {
     @Autowired
     private ArticleRepository articleRepository;
 
+    @Autowired
+    private NamedParameterJdbcTemplate jdbcTemplate;
+
     @LocalServerPort
     private int port;
 
@@ -64,6 +69,13 @@ class NrkNewsConsumerApplicationTests {
 
     private String getApiUrl(final String path) {
         return "http://localhost:" + port + "/api/" + path;
+    }
+
+    @AfterEach
+    @SuppressWarnings("SqlWithoutWhere")
+    void resetArticleState() {
+        jdbcTemplate.update("delete from hidden_articles", Collections.emptyMap());
+        jdbcTemplate.update("delete from read_later_articles", Collections.emptyMap());
     }
 
     @Test
@@ -86,9 +98,9 @@ class NrkNewsConsumerApplicationTests {
                        // Sqlite in-memory with shared cache throws exception if reading from db when other connection
                        // is writing.
                        if (e.getCause() instanceof SQLiteException) {
-                           fail();
+                           fail(); // means retry in this case
                        } else {
-                           throw e;
+                           throw e; // fails the assertion.
                        }
                    }
                });
