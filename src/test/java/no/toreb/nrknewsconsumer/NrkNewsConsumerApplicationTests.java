@@ -1,6 +1,7 @@
 package no.toreb.nrknewsconsumer;
 
 import no.toreb.nrknewsconsumer.controller.HideArticleRequest;
+import no.toreb.nrknewsconsumer.controller.ReadLaterRequest;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
 import org.apache.commons.io.IOUtils;
@@ -256,6 +257,77 @@ class NrkNewsConsumerApplicationTests {
                                                          null,
                                                          new ParameterizedTypeReference<List<Article>>() {}),
                                thirdPageSize5);
+    }
+
+    @Test
+    @Order(50)
+    void shouldProvideRestApiForMarkingArticlesForLaterReading() {
+        final List<Article> articles = getAllArticles();
+
+        addReadLater(articles.get(0), true);
+        assertThat(articleRepository.findAllReadLater(10, 0)).isEqualTo(List.of(articles.get(0)));
+
+        addReadLater(articles.get(0), false);
+        assertThat(articleRepository.findAllReadLater(10, 0)).isEqualTo(Collections.emptyList());
+    }
+
+    @Test
+    @Order(60)
+    @SuppressWarnings("Convert2Diamond")
+    void shouldProvideRestApiForFetchingReadLaterArticles() {
+        assertEmptyArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later"),
+                                                              HttpMethod.GET,
+                                                              null,
+                                                              new ParameterizedTypeReference<List<Article>>() {}));
+
+        getAllArticles()
+                .stream()
+                .limit(20)
+                .forEach(article -> addReadLater(article, true));
+
+        final List<Article> readLaterArticles = articleRepository.findAllReadLater(1000, 0);
+
+        final List<Article> firstPage = readLaterArticles.stream()
+                                                         .limit(10)
+                                                         .collect(Collectors.toList());
+        final List<Article> secondPage = readLaterArticles.stream()
+                                                          .skip(10)
+                                                          .limit(10)
+                                                          .collect(Collectors.toList());
+        final List<Article> thirdPageSize5 = readLaterArticles.stream()
+                                                              .skip(10)
+                                                              .limit(5)
+                                                              .collect(Collectors.toList());
+
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=1&size=10"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=2"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                               secondPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=3&size=5"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                               thirdPageSize5);
+    }
+
+    private void addReadLater(final Article article, final boolean readLater) {
+        final ResponseEntity<Void> readLaterResponse =
+                testRestTemplate.exchange(getApiUrl("/articles/read-later"),
+                                          HttpMethod.PUT,
+                                          new HttpEntity<>(new ReadLaterRequest(article.getArticleId(), readLater)),
+                                          Void.class);
+        assertThat(readLaterResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
     private void assertArticlesResponse(final ResponseEntity<List<Article>> response,

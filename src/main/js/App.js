@@ -6,6 +6,7 @@ import { Route, Switch } from "react-router-dom";
 import Covid19ArticlesPage from "./article/Covid19ArticlesPage";
 import HiddenArticlesPage from "./article/HiddenArticlesPage";
 import NonHiddenArticlesPage from "./article/NonHiddenArticlesPage";
+import ReadLaterArticlesPage from "./article/ReadLaterArticlesPage";
 import Footer from './common/Footer';
 import Header from "./common/Header";
 import Navigation from "./common/Navigation";
@@ -36,6 +37,9 @@ function App({ buildProperties, apiContextPath }) {
                         </Route>
                         <Route path="/hidden-articles">
                             <HiddenArticlesPage apiContextPath={apiContextPath} />
+                        </Route>
+                        <Route path="/read-later">
+                            <ReadLaterArticlesPage apiContextPath={apiContextPath} />
                         </Route>
                         <Route path="/covid-19">
                             <Covid19ArticlesPage apiContextPath={apiContextPath} />

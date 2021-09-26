@@ -27,13 +27,19 @@ class ArticleController {
     @GetMapping
     public List<Article> getAllNonHidden(@RequestParam(value = "page", defaultValue = "1") final long page,
                                          @RequestParam(value = "size", defaultValue = "10") final long size) {
-        return articleRepository.findAllNonHidden(size, (page - 1) * size);
+        return articleRepository.findAllNonHandled(size, (page - 1) * size);
     }
 
     @GetMapping("/hidden")
     public List<Article> getAllHidden(@RequestParam(value = "page", defaultValue = "1") final long page,
                                       @RequestParam(value = "size", defaultValue = "10") final long size) {
         return articleRepository.findAllHidden(size, (page - 1) * size);
+    }
+
+    @GetMapping("/read-later")
+    public List<Article> getAllReadLater(@RequestParam(value = "page", defaultValue = "1") final long page,
+                                         @RequestParam(value = "size", defaultValue = "10") final long size) {
+        return articleRepository.findAllReadLater(size, (page - 1) * size);
     }
 
     @GetMapping("/covid-19")
@@ -46,12 +52,25 @@ class ArticleController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void hide(@RequestBody final HideArticleRequest request) {
         if (request.isHide()) {
-            articleRepository.hideArticle(request.getArticleId(),
-                                          OffsetDateTime.now()
-                                                        .withOffsetSameInstant(ZoneOffset.UTC)
-                                                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+            articleRepository.hideArticle(request.getArticleId(), currentDateTimeAsString());
         } else {
             articleRepository.showArticle(request.getArticleId());
         }
+    }
+
+    @PutMapping("/read-later")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void readLater(@RequestBody final ReadLaterRequest request) {
+        if (request.isReadLater()) {
+            articleRepository.addReadLater(request.getArticleId(), currentDateTimeAsString());
+        } else {
+            articleRepository.removeReadLater(request.getArticleId());
+        }
+    }
+
+    private String currentDateTimeAsString() {
+        return OffsetDateTime.now()
+                             .withOffsetSameInstant(ZoneOffset.UTC)
+                             .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }

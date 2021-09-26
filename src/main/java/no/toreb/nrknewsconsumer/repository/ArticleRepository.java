@@ -26,11 +26,13 @@ public interface ArticleRepository extends CrudRepository<Article, Long> {
     @Query("select a.* " +
            "from article a " +
            "left outer join hidden_articles ha on a.gen_id = ha.article " +
+           "left outer join read_later_articles rla on a.gen_id = rla.article " +
            "where ha.article is null " +
+           "and rla.article is null " +
            "order by PUBLISHED_AT, GEN_ID " +
            "limit :limit " +
            "offset :offset")
-    List<Article> findAllNonHidden(@Param("limit") long limit, @Param("offset") long offset);
+    List<Article> findAllNonHandled(@Param("limit") long limit, @Param("offset") long offset);
 
     @Query("select a.* " +
            "from article a " +
@@ -41,11 +43,24 @@ public interface ArticleRepository extends CrudRepository<Article, Long> {
            "offset :offset")
     List<Article> findAllHidden(@Param("limit") long limit, @Param("offset") long offset);
 
+    @Query("select a.* " +
+           "from article a " +
+           "left outer join hidden_articles ha on a.gen_id = ha.article " +
+           "left outer join read_later_articles rla on a.gen_id = rla.article " +
+           "where ha.article is null " +
+           "and rla.article is not null " +
+           "order by a.published_at, a.GEN_ID " +
+           "limit :limit " +
+           "offset :offset")
+    List<Article> findAllReadLater(@Param("limit") long limit, @Param("offset") long offset);
+
     @Query("select distinct a.* " +
            "from article a " +
            "left outer join article_category ac on a.gen_id = ac.article " +
            "left outer join hidden_articles ha on a.gen_id = ha.article " +
+           "left outer join read_later_articles rla on a.gen_id = rla.article " +
            "where ha.article is null " +
+           "and rla.article is null " +
            "and (lower(ac.category) like '%korona%' " +
            "    or lower(a.description) like '%korona%' " +
            "    or lower(a.title) like '%korona%' " +
@@ -69,4 +84,14 @@ public interface ArticleRepository extends CrudRepository<Article, Long> {
     @Query("delete from hidden_articles " +
            "where article = (select gen_id from article where ARTICLE_ID = :articleId)")
     void showArticle(@Param("articleId") String articleId);
+
+    @Modifying
+    @Query("insert into read_later_articles (article, added_at) " +
+           "select GEN_ID, :addedAt from article where ARTICLE_ID = :articleId")
+    void addReadLater(@Param("articleId") String articleId, @Param("addedAt") String addedAt);
+
+    @Modifying
+    @Query("delete from read_later_articles " +
+           "where article = (select gen_id from article where ARTICLE_ID = :articleId)")
+    void removeReadLater(@Param("articleId") String articleId);
 }
