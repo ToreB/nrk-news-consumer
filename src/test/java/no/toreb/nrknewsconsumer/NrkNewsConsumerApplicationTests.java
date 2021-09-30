@@ -93,7 +93,7 @@ class NrkNewsConsumerApplicationTests {
         await().atMost(Duration.ofSeconds(30)).pollDelay(Duration.ofSeconds(1))
                .untilAsserted(() -> {
                    try {
-                       assertThat(articleRepository.count()).isEqualTo(98);
+                       assertThat(getArticlesCount()).isEqualTo(98);
                    } catch (final Exception e) {
                        // Sqlite in-memory with shared cache throws exception if reading from db when other connection
                        // is writing.
@@ -352,5 +352,10 @@ class NrkNewsConsumerApplicationTests {
     private void assertEmptyArticlesResponse(final ResponseEntity<List<Article>> response) {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEmpty();
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private long getArticlesCount() {
+        return jdbcTemplate.queryForObject("select count(*) from article", Collections.emptyMap(), Long.class);
     }
 }

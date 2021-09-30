@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
-import org.springframework.data.annotation.Id;
 
 import java.time.OffsetDateTime;
 import java.util.Set;
@@ -13,7 +12,6 @@ import java.util.Set;
 @Builder(toBuilder = true)
 public class Article {
 
-    @Id
     Long genId;
     String articleId;
     String title;
@@ -25,6 +23,9 @@ public class Article {
     Set<ArticleMedia> media;
     Set<ArticleCategory> categories;
 
+    boolean hidden;
+    boolean readLater;
+
     @JsonCreator
     public Article(@JsonProperty("genId") final Long genId,
                    @JsonProperty("articleId") final String articleId,
@@ -34,7 +35,9 @@ public class Article {
                    @JsonProperty("author") final String author,
                    @JsonProperty("publishedAt") final OffsetDateTime publishedAt,
                    @JsonProperty("media") final Set<ArticleMedia> media,
-                   @JsonProperty("categories") final Set<ArticleCategory> categories) {
+                   @JsonProperty("categories") final Set<ArticleCategory> categories,
+                   @JsonProperty("hidden") final boolean hidden,
+                   @JsonProperty("readLater") final boolean readLater) {
         this.genId = genId;
         this.articleId = articleId;
         this.title = title;
@@ -44,5 +47,8 @@ public class Article {
         this.publishedAt = publishedAt;
         this.media = Set.copyOf(media);
         this.categories = Set.copyOf(categories);
+
+        this.hidden = hidden;
+        this.readLater = readLater;
     }
 }
