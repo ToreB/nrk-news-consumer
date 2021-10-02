@@ -254,6 +254,8 @@ public class ArticleRepository {
                           .publishedAt(OffsetDateTime.parse(rs.getString("published_at")))
                           .categories(getArticleCategories(genId))
                           .media(getArticleMedia(genId))
+                          .hidden(rs.getBoolean("hidden"))
+                          .readLater(rs.getBoolean("read_later"))
                           .build();
         }
 

@@ -116,8 +116,6 @@ function ArticleList({ apiContextPath, mode }) {
                                            initiallyReadLater={mode === Mode.READ_LATER}
                                            toggleArticleVisibilityFunction={toggleArticleVisibilityFunction}
                                            toggleReadLaterFunction={toggleReadLaterFunction}
-                        // quick fix for wrong state of read later in hidden articles page
-                                           showReadLaterToggle={mode !== Mode.HIDDEN}
                     />
                 })}
             </Grid>
@@ -135,22 +133,15 @@ function ArticleList({ apiContextPath, mode }) {
     );
 }
 
-function ArticleElement({
-                            article,
-                            initiallyHidden,
-                            initiallyReadLater,
-                            toggleArticleVisibilityFunction,
-                            toggleReadLaterFunction,
-                            showReadLaterToggle,
-                        }) {
-    const [hidden, setHidden] = useState(initiallyHidden);
-    const [readLater, setReadLater] = useState(initiallyReadLater)
+function ArticleElement({ article, toggleArticleVisibilityFunction, toggleReadLaterFunction }) {
+    const [hidden, setHidden] = useState(article.hidden === true);
+    const [readLater, setReadLater] = useState(article.readLater === true)
 
     const images = article.media.filter(media => media.medium === 'image');
     const categories = article.categories.map(it => it.category);
 
     const itemStyle = {
-        border: '1px solid black',
+        border: `1px ${readLater ? 'dashed' : 'solid'} black`,
         borderRadius: '5px',
         margin: '10px 10px 10px',
         padding: '5px 25px 15px',
@@ -199,7 +190,7 @@ function ArticleElement({
                     <p style={publishedStyle}>{formatDate(article.publishedAt)}</p>
                 </Grid>
                 <Grid item container justifyContent="flex-end" alignItems="center" spacing={1} xs>
-                    <Grid item hidden={!showReadLaterToggle}>
+                    <Grid item>
                         <IconButton size="small" onClick={() => toggleReadLater(!readLater)}>
                             {readLaterIcon}
                         </IconButton>

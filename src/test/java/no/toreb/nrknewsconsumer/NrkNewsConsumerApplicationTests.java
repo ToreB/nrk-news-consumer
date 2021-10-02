@@ -206,7 +206,8 @@ class NrkNewsConsumerApplicationTests {
         final List<Article> articles = getAllArticles();
 
         hideArticle(articles.get(0), true);
-        assertThat(articleRepository.findAllHidden(10, 0)).isEqualTo(List.of(articles.get(0)));
+        assertThat(articleRepository.findAllHidden(10, 0))
+                .isEqualTo(List.of(articles.get(0).toBuilder().hidden(true).build()));
 
         hideArticle(articles.get(0), false);
         assertThat(articleRepository.findAllHidden(10, 0)).isEqualTo(Collections.emptyList());
@@ -277,7 +278,8 @@ class NrkNewsConsumerApplicationTests {
         final List<Article> articles = getAllArticles();
 
         addReadLater(articles.get(0), true);
-        assertThat(articleRepository.findAllReadLater(10, 0)).isEqualTo(List.of(articles.get(0)));
+        assertThat(articleRepository.findAllReadLater(10, 0))
+                .isEqualTo(List.of(articles.get(0).toBuilder().readLater(true).build()));
 
         addReadLater(articles.get(0), false);
         assertThat(articleRepository.findAllReadLater(10, 0)).isEqualTo(Collections.emptyList());
