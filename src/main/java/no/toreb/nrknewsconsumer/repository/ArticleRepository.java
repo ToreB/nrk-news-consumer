@@ -5,7 +5,6 @@ import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.model.ArticleCategory;
 import no.toreb.nrknewsconsumer.model.ArticleMedia;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.EmptySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -38,10 +37,20 @@ public class ArticleRepository {
     }
 
     @Transactional(readOnly = true)
-    public List<String> distinctArticleIds() {
-        final String sql = "select distinct article_id from article";
+    public List<Article> filterOutExistingArticles(final List<Article> articles) {
+        final String sql = "select article_id " +
+                           "from article " +
+                           "where article_id in (:articleIds)";
 
-        return namedParameterJdbcTemplate.queryForList(sql, new EmptySqlParameterSource(), String.class);
+        final List<String> articleIds = articles.stream()
+                                                .map(Article::getArticleId)
+                                                .collect(Collectors.toList());
+        final List<String> existingArticleIds =
+                namedParameterJdbcTemplate.queryForList(sql, Map.of("articleIds", articleIds), String.class);
+
+        return articles.stream()
+                       .filter(article -> !existingArticleIds.contains(article.getArticleId()))
+                       .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

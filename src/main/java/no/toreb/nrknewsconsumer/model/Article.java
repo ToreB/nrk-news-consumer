@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.Set;
 
 @Value
@@ -45,8 +46,8 @@ public class Article {
         this.link = link;
         this.author = author;
         this.publishedAt = publishedAt;
-        this.media = Set.copyOf(media);
-        this.categories = Set.copyOf(categories);
+        this.media = media != null ? Set.copyOf(media) : Collections.emptySet();
+        this.categories = categories != null ? Set.copyOf(categories) : Collections.emptySet();
 
         this.hidden = hidden;
         this.readLater = readLater;
