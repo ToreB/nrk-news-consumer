@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.OffsetDateTime;
@@ -31,11 +32,14 @@ public class ArticleFetcher {
 
     public List<Article> fetch(final String articlesFeedUrl) {
         log.info("Fetching articles from {}.", articlesFeedUrl);
-        final ResponseEntity<String> response = restTemplate.getForEntity(articlesFeedUrl, String.class);
-        log.debug("Response: {}", response.getStatusCode());
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException(String.format("Fetch articles from feed failed with response %d: %s",
-                                                     response.getStatusCodeValue(), response.getBody()));
+        final ResponseEntity<String> response;
+        try {
+            response = restTemplate.getForEntity(articlesFeedUrl, String.class);
+            log.debug("Response: {}", response.getStatusCode());
+        } catch (final RestClientResponseException e) {
+            log.error("Fetch articles from feed failed with response {}: {}",
+                      e.getRawStatusCode(), e.getResponseBodyAsString());
+            throw e;
         }
 
         //noinspection ConstantConditions
