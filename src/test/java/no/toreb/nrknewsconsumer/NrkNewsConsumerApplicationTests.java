@@ -153,18 +153,21 @@ class NrkNewsConsumerApplicationTests {
     @Order(21)
     @SuppressWarnings("Convert2Diamond")
     void shouldProvideRestApiForFetchingCovid19Articles() {
+        final String regex = "(.*?korona.*|covid[ -]?19|.*?vaksine.*|.*?smitte.*?)";
         final List<Article> covid19Articles =
                 getAllArticles()
                         .stream()
-                        .filter(article -> article.getCategories()
-                                                  .stream()
-                                                  .anyMatch(it -> it.getCategory()
-                                                                    .toLowerCase()
-                                                                    .matches("(.*?korona.*|covid[ -]?19)"))
-                                           || article.getDescription()
-                                                     .toLowerCase()
-                                                     .matches("(.*?korona.*|.*?covid[ -]?19.*?|.*?vaksine.*)")
-                                           || article.getTitle().toLowerCase().contains("vaksine"))
+                        .filter(article -> {
+                            return article.getCategories()
+                                              .stream()
+                                              .anyMatch(it -> it.getCategory()
+                                                                        .toLowerCase()
+                                                                        .matches(regex))
+                                       || article.getDescription()
+                                                         .toLowerCase()
+                                                         .matches(regex)
+                                       || article.getTitle().toLowerCase().matches(regex);
+                        })
                         .collect(Collectors.toList());
         final List<Article> firstPage = covid19Articles.stream()
                                                        .limit(10)

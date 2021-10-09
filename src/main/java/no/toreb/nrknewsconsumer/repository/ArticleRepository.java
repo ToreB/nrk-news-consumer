@@ -113,7 +113,7 @@ public class ArticleRepository {
 
     @Transactional(readOnly = true)
     public List<Article> findAllCovid19(final long limit, final long offset) {
-        final List<String> patterns = List.of("%korona%", "%covid%19%", "%vaksine%");
+        final List<String> patterns = List.of("%korona%", "%covid%19%", "%vaksine%", "%smitte%");
         final List<String> columns = List.of("ac.category", "a.description", "a.title");
 
         final String patternMatchingClause =
