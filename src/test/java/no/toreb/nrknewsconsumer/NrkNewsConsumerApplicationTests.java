@@ -1,5 +1,6 @@
 package no.toreb.nrknewsconsumer;
 
+import no.toreb.nrknewsconsumer.controller.ArticleResponse;
 import no.toreb.nrknewsconsumer.controller.HideArticleRequest;
 import no.toreb.nrknewsconsumer.controller.ReadLaterRequest;
 import no.toreb.nrknewsconsumer.model.Article;
@@ -18,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -108,9 +108,8 @@ class NrkNewsConsumerApplicationTests {
 
     @Test
     @Order(20)
-    @SuppressWarnings("Convert2Diamond")
-    void shouldProvideRestApiForFetchingArticles() {
-        final List<Article> articles = getAllArticles();
+    void shouldProvideApiForFetchingNonHandledArticles() {
+        final List<Article> articles = getAllNonHandledArticles();
         final List<Article> firstPage = articles.stream()
                                                 .limit(10)
                                                 .collect(Collectors.toList());
@@ -126,49 +125,29 @@ class NrkNewsConsumerApplicationTests {
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                firstPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles?page=1&size=10"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                firstPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles?page=2"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                secondPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles?page=3&size=5"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                thirdPageSize5);
-    }
-
-    private List<Article> getAllArticles() {
-        return articleRepository.findAll();
     }
 
     @Test
     @Order(21)
-    @SuppressWarnings("Convert2Diamond")
-    void shouldProvideRestApiForFetchingCovid19Articles() {
-        final String regex = "(.*?korona.*|covid[ -]?19|.*?vaksine.*|.*?smitte.*?)";
-        final List<Article> covid19Articles =
-                getAllArticles()
-                        .stream()
-                        .filter(article -> {
-                            return article.getCategories()
-                                              .stream()
-                                              .anyMatch(it -> it.getCategory()
-                                                                        .toLowerCase()
-                                                                        .matches(regex))
-                                       || article.getDescription()
-                                                         .toLowerCase()
-                                                         .matches(regex)
-                                       || article.getTitle().toLowerCase().matches(regex);
-                        })
-                        .collect(Collectors.toList());
+    void shouldProvideApiForFetchingCovid19Articles() {
+        final List<Article> covid19Articles = getAllCovid19Articles();
         final List<Article> firstPage = covid19Articles.stream()
                                                        .limit(10)
                                                        .collect(Collectors.toList());
@@ -184,29 +163,29 @@ class NrkNewsConsumerApplicationTests {
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                firstPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=1&size=10"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                firstPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=2"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                secondPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=3&size=5"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                thirdPageSize5);
     }
 
     @Test
     @Order(30)
-    void shouldProvideRestApiForControllingVisibilityArticles() {
-        final List<Article> articles = getAllArticles();
+    void shouldProvideApiForControllingVisibilityArticles() {
+        final List<Article> articles = getAllNonHandledArticles();
 
         hideArticle(articles.get(0), true);
         assertThat(articleRepository.findAllHidden(10, 0))
@@ -227,19 +206,19 @@ class NrkNewsConsumerApplicationTests {
 
     @Test
     @Order(40)
-    @SuppressWarnings("Convert2Diamond")
-    void shouldProvideRestApiForFetchingHiddenArticles() {
+    void shouldProvideApiForFetchingHiddenArticles() {
         assertEmptyArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden"),
                                                               HttpMethod.GET,
                                                               null,
-                                                              new ParameterizedTypeReference<List<Article>>() {}));
+                                                              ArticleResponse.class));
 
-        getAllArticles()
+        getAllNonHandledArticles()
                 .stream()
                 .limit(20)
                 .forEach(article -> hideArticle(article, true));
 
-        final List<Article> hiddenArticles = articleRepository.findAllHidden(1000, 0);
+        final List<Article> hiddenArticles = getAllHiddenArticles();
+        Collections.reverse(hiddenArticles);
 
         final List<Article> firstPage = hiddenArticles.stream()
                                                       .limit(10)
@@ -256,29 +235,29 @@ class NrkNewsConsumerApplicationTests {
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                firstPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden?page=1&size=10"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                firstPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden?page=2"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                secondPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden?page=3&size=5"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                thirdPageSize5);
     }
 
     @Test
     @Order(50)
-    void shouldProvideRestApiForMarkingArticlesForLaterReading() {
-        final List<Article> articles = getAllArticles();
+    void shouldProvideApiForMarkingArticlesForLaterReading() {
+        final List<Article> articles = getAllNonHandledArticles();
 
         addReadLater(articles.get(0), true);
         assertThat(articleRepository.findAllReadLater(10, 0))
@@ -290,19 +269,18 @@ class NrkNewsConsumerApplicationTests {
 
     @Test
     @Order(60)
-    @SuppressWarnings("Convert2Diamond")
-    void shouldProvideRestApiForFetchingReadLaterArticles() {
+    void shouldProvideApiForFetchingReadLaterArticles() {
         assertEmptyArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later"),
                                                               HttpMethod.GET,
                                                               null,
-                                                              new ParameterizedTypeReference<List<Article>>() {}));
+                                                              ArticleResponse.class));
 
         getAllArticles()
                 .stream()
                 .limit(20)
                 .forEach(article -> addReadLater(article, true));
 
-        final List<Article> readLaterArticles = articleRepository.findAllReadLater(1000, 0);
+        final List<Article> readLaterArticles = getAllReadLaterArticles();
 
         final List<Article> firstPage = readLaterArticles.stream()
                                                          .limit(10)
@@ -319,23 +297,111 @@ class NrkNewsConsumerApplicationTests {
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                firstPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=1&size=10"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                firstPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=2"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                secondPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=3&size=5"),
                                                          HttpMethod.GET,
                                                          null,
-                                                         new ParameterizedTypeReference<List<Article>>() {}),
+                                                         ArticleResponse.class),
                                thirdPageSize5);
+    }
+
+    @Test
+    @Order(70)
+    void shouldProvideApiForFetchingNonHiddenArticlesCount() {
+        final int articleCount = getAllNonHandledArticles().size();
+
+        final ResponseEntity<ArticleResponse> response = testRestTemplate.exchange(getApiUrl("/articles"),
+                                                                                   HttpMethod.GET,
+                                                                                   null,
+                                                                                   ArticleResponse.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        final ArticleResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getTotalCount()).isEqualTo(articleCount);
+    }
+
+    @Test
+    @Order(80)
+    void shouldProvideApiForFetchingCovid19ArticlesCount() {
+        final int articleCount = getAllCovid19Articles().size();
+
+        final ResponseEntity<ArticleResponse> response = testRestTemplate.exchange(getApiUrl("/articles/covid-19"),
+                                                                                   HttpMethod.GET,
+                                                                                   null,
+                                                                                   ArticleResponse.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        final ArticleResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getTotalCount()).isEqualTo(articleCount);
+    }
+
+    @Test
+    @Order(90)
+    void shouldProvideApiForFetchingReadLaterArticlesCount() {
+        final int count = 20;
+        getAllArticles()
+                .stream()
+                .limit(count)
+                .forEach(article -> addReadLater(article, true));
+
+        final ResponseEntity<ArticleResponse> response = testRestTemplate.exchange(getApiUrl("/articles/read-later"),
+                                                                                   HttpMethod.GET,
+                                                                                   null,
+                                                                                   ArticleResponse.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        final ArticleResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getTotalCount()).isEqualTo(count);
+    }
+
+    private List<Article> getAllArticles() {
+        return articleRepository.findAll();
+    }
+
+    private List<Article> getAllNonHandledArticles() {
+        return getAllArticles().stream()
+                               .filter(article -> !article.isReadLater() && !article.isHidden())
+                               .collect(Collectors.toList());
+    }
+
+    private List<Article> getAllCovid19Articles() {
+        final String regex = "(.*?korona.*|covid[ -]?19|.*?vaksine.*|.*?smitte.*?)";
+        return getAllArticles()
+                .stream()
+                .filter(article -> article.getCategories()
+                                          .stream()
+                                          .anyMatch(it -> it.getCategory()
+                                                            .toLowerCase()
+                                                            .matches(regex))
+                                   || article.getDescription()
+                                             .toLowerCase()
+                                             .matches(regex)
+                                   || article.getTitle().toLowerCase().matches(regex))
+                .filter(article -> !article.isHidden())
+                .collect(Collectors.toList());
+    }
+
+    private List<Article> getAllReadLaterArticles() {
+        return getAllArticles().stream()
+                               .filter(article -> article.isReadLater() && !article.isHidden())
+                               .collect(Collectors.toList());
+    }
+
+    private List<Article> getAllHiddenArticles() {
+        return getAllArticles().stream()
+                               .filter(Article::isHidden)
+                               .collect(Collectors.toList());
     }
 
     private void addReadLater(final Article article, final boolean readLater) {
@@ -347,16 +413,19 @@ class NrkNewsConsumerApplicationTests {
         assertThat(readLaterResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
-    private void assertArticlesResponse(final ResponseEntity<List<Article>> response,
+    private void assertArticlesResponse(final ResponseEntity<ArticleResponse> response,
                                         final List<Article> expectedArticles) {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotEmpty()
-                                      .isEqualTo(expectedArticles);
+        final ArticleResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getArticles()).isEqualTo(expectedArticles);
     }
 
-    private void assertEmptyArticlesResponse(final ResponseEntity<List<Article>> response) {
+    private void assertEmptyArticlesResponse(final ResponseEntity<ArticleResponse> response) {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEmpty();
+        final ArticleResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getArticles()).isEmpty();
     }
 
     @SuppressWarnings("ConstantConditions")

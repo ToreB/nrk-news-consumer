@@ -10,7 +10,7 @@ export const Mode = {
     READ_LATER: "read-later"
 };
 
-function fetchArticles(apiContextPath, page, mode) {
+function resolvePath(apiContextPath, mode) {
     let path = `${apiContextPath}/articles`;
     switch (mode) {
         case Mode.HIDDEN:
@@ -23,6 +23,12 @@ function fetchArticles(apiContextPath, page, mode) {
             path += "/read-later"
             break;
     }
+
+    return path;
+}
+
+function fetchArticles(apiContextPath, page, mode) {
+    let path = resolvePath(apiContextPath, mode);
 
     return fetch(`${path}?size=12&page=${page}`)
         .then(res => res.json());
@@ -61,6 +67,7 @@ function ArticleList({ apiContextPath, mode }) {
     const [page, setPage] = useState(1);
     const [hiddenToggledArticles, setHiddenToggledArticles] = useState([]);
     const [readLaterToggledArticles, setReadLaterToggledArticles] = useState([]);
+    const [totalCountArticles, setTotalCountArticles] = useState(0);
 
     const toggleArticleVisibilityFunction = (articleId, toggled, callback) => {
         toggleArticleVisibility(apiContextPath, articleId, toggled, callback);
@@ -83,12 +90,14 @@ function ArticleList({ apiContextPath, mode }) {
     const loadArticles = (isReload = false) => {
         fetchArticles(apiContextPath, page, mode)
             .then(resultJson => {
+                setTotalCountArticles(resultJson.totalCount);
+                const fetchedArticles = resultJson.articles;
                 if (!isReload) {
-                    setArticles(resultJson);
+                    setArticles(fetchedArticles);
                     return;
                 }
 
-                const newArticles = resultJson.map(article => {
+                const newArticles = fetchedArticles.map(article => {
                     return { ...article, isNew: !articles.some(it => it.articleId === article.articleId) }
                 });
                 setArticles(newArticles);
@@ -105,10 +114,25 @@ function ArticleList({ apiContextPath, mode }) {
         marginRight: '30px'
     };
 
+    const countViewStyle = {
+        display: mode === Mode.HIDDEN ? 'none' : 'block',
+        border: '1px solid black',
+        borderRadius: '5px',
+        margin: '10px 10px 10px',
+        padding: '0px 25px',
+        maxWidth: '350px',
+        fontWeight: 'bold'
+    };
+
     const countToggledArticles = hiddenToggledArticles.length + readLaterToggledArticles.length;
     return (
         <div id="articles">
             <Grid container>
+                <Grid item xs={12}>
+                    <div style={countViewStyle}>
+                        <p>Articles in this view: {totalCountArticles}</p>
+                    </div>
+                </Grid>
                 {articles.map(article => {
                     return <ArticleElement key={article.articleId}
                                            article={article}
@@ -178,10 +202,10 @@ function ArticleElement({ article, toggleArticleVisibilityFunction, toggleReadLa
 
     const readLaterIcon = readLater ? <WatchLaterIcon /> : <WatchLaterOutlinedIcon />
 
-    const toggleHidden = hidden => toggleArticleVisibilityFunction(article.articleId, hidden, () => setHidden(hidden));
-    const toggleReadLater =
-        readLater => toggleReadLaterFunction(article.articleId, readLater, () => setReadLater(readLater));
-
+    const toggleHiddenHandler =
+        value => toggleArticleVisibilityFunction(article.articleId, value, () => setHidden(value));
+    const toggleReadLaterHandler =
+        value => toggleReadLaterFunction(article.articleId, value, () => setReadLater(value));
     return (
         <Grid item key={article.articleId} style={itemStyle} xs={12}>
             <div style={article.isNew ? newArticleIndicatorStyle : { display: 'None' }} />
@@ -191,13 +215,13 @@ function ArticleElement({ article, toggleArticleVisibilityFunction, toggleReadLa
                 </Grid>
                 <Grid item container justifyContent="flex-end" alignItems="center" spacing={1} xs>
                     <Grid item>
-                        <IconButton size="small" onClick={() => toggleReadLater(!readLater)}>
+                        <IconButton size="small" onClick={() => toggleReadLaterHandler(!readLater)}>
                             {readLaterIcon}
                         </IconButton>
                     </Grid>
                     <Grid item>
                         <Switch checked={hidden}
-                                onChange={() => toggleHidden(!hidden)}
+                                onChange={() => toggleHiddenHandler(!hidden)}
                                 size="medium" />
                     </Grid>
                 </Grid>
@@ -205,7 +229,7 @@ function ArticleElement({ article, toggleArticleVisibilityFunction, toggleReadLa
             <div style={{ clear: 'both' }}>
                 <a target="_blank"
                    href={article.link}
-                   onClick={() => toggleHidden(true)}><p style={titleStyle}>{article.title}</p></a>
+                   onClick={() => toggleHiddenHandler(true)}><p style={titleStyle}>{article.title}</p></a>
                 <p>{article.description}</p>
                 {images.map((image, i) => <img key={i} src={image.url} alt={image.title} width="100%" />)}
                 <div>

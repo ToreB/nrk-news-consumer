@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository
+@SuppressWarnings({ "java:S1192" })
 public class ArticleRepository {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -68,17 +69,38 @@ public class ArticleRepository {
 
     @Transactional(readOnly = true)
     public List<Article> findAllNonHandled(final long limit, final long offset) {
-        final String sql = "select a.*, false as hidden, false as read_later " +
-                           "from article a " +
-                           "left outer join hidden_articles ha on a.gen_id = ha.article " +
-                           "left outer join read_later_articles rla on a.gen_id = rla.article " +
-                           "where ha.article is null " +
-                           "and rla.article is null " +
-                           "order by a.published_at, a.gen_id " +
-                           "limit :limit " +
-                           "offset :offset";
+        final String sql = buildNonHandledArticlesSql("select *",
+                                                      "order by published_at, gen_id",
+                                                      limit,
+                                                      offset);
 
         return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
+    }
+
+    @Transactional(readOnly = true)
+    public long countAllNonHandled() {
+        final String sql = buildNonHandledArticlesSql("select count(1)", null, null, null);
+
+        //noinspection ConstantConditions
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.emptyMap(), Long.class);
+    }
+
+    private String buildNonHandledArticlesSql(final String select,
+                                              final String orderBy,
+                                              final Long limit,
+                                              final Long offset) {
+        return select +
+               " from (" +
+               "    select a.*, false as hidden, false as read_later" +
+               "    from article a " +
+               "    left outer join hidden_articles ha on a.gen_id = ha.article " +
+               "    left outer join read_later_articles rla on a.gen_id = rla.article " +
+               "    where ha.article is null " +
+               "    and rla.article is null" +
+               ") tmp " +
+               (orderBy != null ? orderBy : "") +
+               (limit != null ? " limit :limit " : "") +
+               (offset != null ? " offset :offset" : "");
     }
 
     @Transactional(readOnly = true)
@@ -98,21 +120,62 @@ public class ArticleRepository {
 
     @Transactional(readOnly = true)
     public List<Article> findAllReadLater(final long limit, final long offset) {
-        final String sql = "select a.*, false as hidden, true as read_later " +
-                           "from article a " +
-                           "left outer join hidden_articles ha on a.gen_id = ha.article " +
-                           "left outer join read_later_articles rla on a.gen_id = rla.article " +
-                           "where ha.article is null " +
-                           "and rla.article is not null " +
-                           "order by a.published_at, a.GEN_ID " +
-                           "limit :limit " +
-                           "offset :offset";
+        final String sql = buildReadLaterArticlesSql("select *",
+                                                     "order by published_at, GEN_ID",
+                                                     limit,
+                                                     offset);
 
         return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
     }
 
     @Transactional(readOnly = true)
+    public long countReadLater() {
+        final String sql = buildReadLaterArticlesSql("select count(1)", null, null, null);
+
+        //noinspection ConstantConditions
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.emptyMap(), Long.class);
+    }
+
+    private String buildReadLaterArticlesSql(final String select,
+                                             final String orderBy,
+                                             final Long limit,
+                                             final Long offset) {
+        return select +
+               " from (" +
+               "    select a.*, false as hidden, true as read_later " +
+               "    from article a " +
+               "    left outer join hidden_articles ha on a.gen_id = ha.article " +
+               "    left outer join read_later_articles rla on a.gen_id = rla.article " +
+               "    where ha.article is null " +
+               "    and rla.article is not null " +
+               ") tmp " +
+               (orderBy != null ? orderBy : "") +
+               (limit != null ? " limit :limit " : "") +
+               (offset != null ? " offset :offset" : "");
+    }
+
+    @Transactional(readOnly = true)
     public List<Article> findAllCovid19(final long limit, final long offset) {
+        final String sql = buildCovid19ArticlesSql("select *",
+                                                   "order by published_at, gen_id",
+                                                   limit,
+                                                   offset);
+
+        return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
+    }
+
+    @Transactional(readOnly = true)
+    public long countCovid19() {
+        final String sql = buildCovid19ArticlesSql("select count(1)", null, null, null);
+
+        //noinspection ConstantConditions
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.emptyMap(), Long.class);
+    }
+
+    private String buildCovid19ArticlesSql(final String select,
+                                           final String orderBy,
+                                           final Long limit,
+                                           final Long offset) {
         final List<String> patterns = List.of("%korona%", "%covid%19%", "%vaksine%", "%smitte%");
         final List<String> columns = List.of("ac.category", "a.description", "a.title");
 
@@ -125,19 +188,20 @@ public class ArticleRepository {
                         .collect(Collectors.joining(" or ")) +
                 ")";
 
-        final String sql = "select distinct a.*, false as hidden, false as read_later " +
-                           "from article a " +
-                           "left outer join article_category ac on a.gen_id = ac.article " +
-                           "left outer join hidden_articles ha on a.gen_id = ha.article " +
-                           "left outer join read_later_articles rla on a.gen_id = rla.article " +
-                           "where ha.article is null " +
-                           "and rla.article is null " +
-                           patternMatchingClause +
-                           "order by a.published_at, a.gen_id " +
-                           "limit :limit " +
-                           "offset :offset";
-
-        return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
+        return select +
+               " from (" +
+               "    select distinct a.*, false as hidden, false as read_later " +
+               "    from article a " +
+               "    left outer join article_category ac on a.gen_id = ac.article " +
+               "    left outer join hidden_articles ha on a.gen_id = ha.article " +
+               "    left outer join read_later_articles rla on a.gen_id = rla.article " +
+               "    where ha.article is null " +
+               "    and rla.article is null " +
+               patternMatchingClause +
+               ") tmp " +
+               (orderBy != null ? orderBy : "") +
+               (limit != null ? " limit :limit " : "") +
+               (offset != null ? " offset :offset" : "");
     }
 
     @Transactional
