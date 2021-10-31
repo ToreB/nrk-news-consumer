@@ -49,7 +49,7 @@ class FetchToppsakerTask {
         final List<Article> articles = articleFetcher.fetch(articlesFeedUrl);
         final List<Article> newArticles = articleRepository.filterOutExistingArticles(articles);
 
-        log.info("Found {} / {} new news articles", newArticles.size(), articles.size());
+        log.info("Found {} / {} new news articles from {}", newArticles.size(), articles.size(), articlesFeedUrl);
         newArticles.forEach(articleRepository::save);
         lastFetchTime = LocalDateTime.now();
     }

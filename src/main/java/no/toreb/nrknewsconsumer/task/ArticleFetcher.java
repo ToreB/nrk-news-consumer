@@ -31,7 +31,7 @@ public class ArticleFetcher {
     }
 
     public List<Article> fetch(final String articlesFeedUrl) {
-        log.info("Fetching articles from {}.", articlesFeedUrl);
+        log.debug("Fetching articles from {}.", articlesFeedUrl);
         final ResponseEntity<String> response;
         try {
             response = restTemplate.getForEntity(articlesFeedUrl, String.class);
