@@ -49,14 +49,14 @@ class FetchToppsakerTask {
         final List<Article> articles = articleFetcher.fetch(articlesFeedUrl);
         final List<Article> newArticles = articleRepository.filterOutExistingArticles(articles);
 
-        log.info("Found {} new news articles", newArticles.size());
+        log.info("Found {} / {} new news articles", newArticles.size(), articles.size());
         newArticles.forEach(articleRepository::save);
         lastFetchTime = LocalDateTime.now();
     }
 
     /**
      * By checking whether to fetch as a separate calculation from the task scheduling, combined with a rather frequent
-     * scheduling of the task, the task should be able to better handling if the operating system frequently goes into
+     * scheduling of the task, the task should be able to better handle if the operating system frequently goes into
      * sleep or hibernation.
      * This should make the task fetch shortly after the OS wakes up.
      *
