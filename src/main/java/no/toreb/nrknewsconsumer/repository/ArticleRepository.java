@@ -176,7 +176,9 @@ public class ArticleRepository {
                                            final String orderBy,
                                            final Long limit,
                                            final Long offset) {
-        final List<String> patterns = List.of("%korona%", "%covid%19%", "%vaksine%", "%smitte%");
+        final List<String> patterns = List.of(
+                "%korona%", "%covid%19%", "%vaksine%", "%smitte%", "%pandemi%", "%epidemi%"
+        );
         final List<String> columns = List.of("ac.category", "a.description", "a.title");
 
         final String patternMatchingClause =

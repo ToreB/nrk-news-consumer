@@ -376,7 +376,7 @@ class NrkNewsConsumerApplicationTests {
     }
 
     private List<Article> getAllCovid19Articles() {
-        final String regex = "(.*?korona.*|covid[ -]?19|.*?vaksine.*|.*?smitte.*?)";
+        final String regex = "(.*?korona.*|covid[ -]?19|.*?vaksine.*|.*?smitte.*|.*?pandemi.*|.*?epidemi.*)";
         return getAllArticles()
                 .stream()
                 .filter(article -> article.getCategories()
