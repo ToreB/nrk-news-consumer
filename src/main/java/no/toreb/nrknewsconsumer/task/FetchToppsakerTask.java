@@ -42,6 +42,7 @@ class FetchToppsakerTask {
     @Scheduled(fixedDelayString = "${task.fetch-toppsaker.fixed-delay}",
                initialDelayString = "${task.fetch-toppsaker.initial-delay}")
     public void run() {
+        log.trace("Run task");
         if (!shouldFetch()) {
             return;
         }
@@ -63,11 +64,13 @@ class FetchToppsakerTask {
      * @return true if articles should be fetched, false otherwise.
      */
     private boolean shouldFetch() {
+        log.trace("Last fetch time: {}", lastFetchTime);
         if (lastFetchTime == null) {
             return true;
         }
 
         final LocalDateTime nextSyncTime = lastFetchTime.plusSeconds(syncRateDuration.toSeconds());
+        log.trace("Next sync time: {}", nextSyncTime);
         return LocalDateTime.now().compareTo(nextSyncTime) >= 0;
     }
 }
