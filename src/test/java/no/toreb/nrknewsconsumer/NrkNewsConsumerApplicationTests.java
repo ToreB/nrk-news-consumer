@@ -1,16 +1,15 @@
 package no.toreb.nrknewsconsumer;
 
+import lombok.SneakyThrows;
 import no.toreb.nrknewsconsumer.controller.ArticleResponse;
 import no.toreb.nrknewsconsumer.controller.HideArticleRequest;
 import no.toreb.nrknewsconsumer.controller.ReadLaterRequest;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
+import no.toreb.nrknewsconsumer.task.ArticleFeedParser;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
@@ -46,7 +45,6 @@ import static org.mockito.Mockito.when;
                         "spring.datasource.username=sa",
                         "logging.level.no.toreb=debug"
                 }, webEnvironment = WebEnvironment.RANDOM_PORT)
-@TestMethodOrder(OrderAnnotation.class)
 class NrkNewsConsumerApplicationTests {
 
     @MockBean
@@ -73,22 +71,21 @@ class NrkNewsConsumerApplicationTests {
 
     @AfterEach
     @SuppressWarnings("SqlWithoutWhere")
-    void resetArticleState() {
+    void resetDatabase() {
+        jdbcTemplate.update("delete from article_category", Collections.emptyMap());
+        jdbcTemplate.update("delete from article_media", Collections.emptyMap());
         jdbcTemplate.update("delete from hidden_articles", Collections.emptyMap());
         jdbcTemplate.update("delete from read_later_articles", Collections.emptyMap());
+        jdbcTemplate.update("delete from article", Collections.emptyMap());
     }
 
     @Test
-    @Order(10)
     void shouldScheduledTaskToFetchesArticles() throws IOException {
-        //noinspection ConstantConditions
-        final List<String> testFeedContent =
-                IOUtils.readLines(getClass().getResourceAsStream("/test-feed-toppsaker.rss"),
-                                  Charset.defaultCharset());
+        final String testFeedContent = getTestFeedContent();
         when(restTemplate.getForEntity(any(),
                                        ArgumentMatchers.<Class<String>>any(),
                                        ArgumentMatchers.<Object>any()))
-                .thenReturn(ResponseEntity.ok(String.join("", testFeedContent)));
+                .thenReturn(ResponseEntity.ok(testFeedContent));
 
         await().atMost(Duration.ofSeconds(30)).pollDelay(Duration.ofSeconds(1))
                .untilAsserted(() -> {
@@ -107,8 +104,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(20)
     void shouldProvideApiForFetchingNonHandledArticles() {
+        insertTestData();
+
         final List<Article> articles = getAllNonHandledArticles();
         final List<Article> firstPage = articles.stream()
                                                 .limit(10)
@@ -145,8 +143,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(21)
     void shouldProvideApiForFetchingCovid19Articles() {
+        insertTestData();
+
         final List<Article> covid19Articles = getAllCovid19Articles();
         final List<Article> firstPage = covid19Articles.stream()
                                                        .limit(10)
@@ -183,8 +182,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(30)
     void shouldProvideApiForControllingVisibilityArticles() {
+        insertTestData();
+
         final List<Article> articles = getAllNonHandledArticles();
 
         hideArticle(articles.get(0), true);
@@ -205,8 +205,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(40)
     void shouldProvideApiForFetchingHiddenArticles() {
+        insertTestData();
+
         assertEmptyArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden"),
                                                               HttpMethod.GET,
                                                               null,
@@ -255,8 +256,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(50)
     void shouldProvideApiForMarkingArticlesForLaterReading() {
+        insertTestData();
+
         final List<Article> articles = getAllNonHandledArticles();
 
         addReadLater(articles.get(0), true);
@@ -268,8 +270,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(60)
     void shouldProvideApiForFetchingReadLaterArticles() {
+        insertTestData();
+
         assertEmptyArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later"),
                                                               HttpMethod.GET,
                                                               null,
@@ -317,8 +320,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(70)
     void shouldProvideApiForFetchingNonHiddenArticlesCount() {
+        insertTestData();
+
         final int articleCount = getAllNonHandledArticles().size();
 
         final ResponseEntity<ArticleResponse> response = testRestTemplate.exchange(getApiUrl("/articles"),
@@ -332,8 +336,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(80)
     void shouldProvideApiForFetchingCovid19ArticlesCount() {
+        insertTestData();
+
         final int articleCount = getAllCovid19Articles().size();
 
         final ResponseEntity<ArticleResponse> response = testRestTemplate.exchange(getApiUrl("/articles/covid-19"),
@@ -347,8 +352,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    @Order(90)
     void shouldProvideApiForFetchingReadLaterArticlesCount() {
+        insertTestData();
+
         final int count = 20;
         getAllArticles()
                 .stream()
@@ -363,6 +369,21 @@ class NrkNewsConsumerApplicationTests {
         final ArticleResponse body = response.getBody();
         assertThat(body).isNotNull();
         assertThat(body.getTotalCount()).isEqualTo(count);
+    }
+
+    private void insertTestData() {
+        final String testFeedContent = getTestFeedContent();
+        new ArticleFeedParser()
+                .parseFeed(testFeedContent)
+                .forEach(articleRepository::save);
+    }
+
+    @SneakyThrows
+    @SuppressWarnings("ConstantConditions")
+    private String getTestFeedContent() {
+        final List<String> lines = IOUtils.readLines(getClass().getResourceAsStream("/test-feed-toppsaker.rss"),
+                                                     Charset.defaultCharset());
+        return String.join("", lines);
     }
 
     private List<Article> getAllArticles() {
