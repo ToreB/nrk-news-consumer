@@ -26,7 +26,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.sqlite.SQLiteException;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Collections;
@@ -80,7 +79,7 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    void shouldScheduledTaskToFetchesArticles() throws IOException {
+    void shouldScheduledTaskToFetchesArticles() {
         final String testFeedContent = getTestFeedContent();
         when(restTemplate.getForEntity(any(),
                                        ArgumentMatchers.<Class<String>>any(),

@@ -1,5 +1,6 @@
 package no.toreb.nrknewsconsumer.task;
 
+import lombok.extern.slf4j.Slf4j;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.model.ArticleCategory;
 import no.toreb.nrknewsconsumer.model.ArticleMedia;
@@ -7,15 +8,18 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class ArticleFeedParser {
 
@@ -27,6 +31,14 @@ public class ArticleFeedParser {
         final Set<Article> articles = new HashSet<>();
         items.forEach(element -> {
             final JSONObject item = (JSONObject) element;
+
+            final String articleId = extractArticleId(item);
+            final String articleLink = item.optString("link", null);
+            if (articleId == null && !StringUtils.hasText(articleLink)) {
+                log.info("Found article without ID and link. It will be skipped. Article: {}", item);
+                return;
+            }
+
             final JSONArray categories = item.optJSONArray("category");
             final Set<ArticleCategory> articleCategories = new HashSet<>();
             if (categories != null) {
@@ -47,10 +59,10 @@ public class ArticleFeedParser {
             }
 
             final Article article = Article.builder()
-                                           .articleId(extractArticleId(item))
+                                           .articleId(articleId)
                                            .title(item.getString("title"))
                                            .description(item.optString("description", null))
-                                           .link(item.getString("link"))
+                                           .link(articleLink)
                                            .author(item.optString("dc:creator", null))
                                            .publishedAt(OffsetDateTime.parse(item.getString("dc:date"))
                                                                       .withOffsetSameInstant(ZoneOffset.UTC))
@@ -66,6 +78,8 @@ public class ArticleFeedParser {
     }
 
     private String extractArticleId(final JSONObject item) {
-        return item.getJSONObject("guid").getString("content");
+        return Optional.ofNullable(item.optJSONObject("guid"))
+                       .map(guid -> guid.optString("content", null))
+                       .orElse(null);
     }
 }
