@@ -177,7 +177,8 @@ public class ArticleRepository {
                                            final Long limit,
                                            final Long offset) {
         final List<String> patterns = List.of(
-                "%korona%", "%covid%19%", "%vaksine%", "%smitte%", "%pandemi%", "%epidemi%"
+                "%korona%", "%covid%19%", "%vaksine%", "%vaksinasjon%", "%smitte%", "%pandemi%", "%epidemi%",
+                "%omikron%", "%omicron%", "%virus%"
         );
         final List<String> columns = List.of("ac.category", "a.description", "a.title");
 
