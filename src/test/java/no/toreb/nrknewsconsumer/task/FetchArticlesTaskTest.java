@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @MockitoSettings
-class FetchToppsakerTaskTest {
+class FetchArticlesTaskTest {
 
     @Mock
     private ArticleRepository articleRepository;
@@ -29,14 +29,15 @@ class FetchToppsakerTaskTest {
 
     private final String feedUrl = "http://the-feed-url.no";
 
-    private FetchToppsakerTask task;
+    private FetchArticlesTask task;
 
     @BeforeEach
     void setUp() {
-        task = new FetchToppsakerTask(articleRepository,
-                                      articleFetcher,
-                                      feedUrl,
-                                      Duration.ofSeconds(1));
+        task = new FetchArticlesTask("TestTask",
+                                     articleRepository,
+                                     articleFetcher,
+                                     feedUrl,
+                                     Duration.ofSeconds(1));
     }
 
     @Test

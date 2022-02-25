@@ -1,12 +1,10 @@
 package no.toreb.nrknewsconsumer.task;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -14,9 +12,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
-@Component
-@ConditionalOnProperty(name = "task.fetch-toppsaker.enabled", havingValue = "true", matchIfMissing = true)
-class FetchToppsakerTask {
+@RequiredArgsConstructor
+public class FetchArticlesTask {
+
+    private final String taskName;
 
     private final ArticleRepository articleRepository;
 
@@ -28,21 +27,11 @@ class FetchToppsakerTask {
 
     private LocalDateTime lastFetchTime;
 
-    public FetchToppsakerTask(final ArticleRepository articleRepository,
-                              final ArticleFetcher articleFetcher,
-                              @Value("${task.fetch-toppsaker.articles-feed-url}") final String articlesFeedUrl,
-                              @Value("${task.fetch-toppsaker.fetch-rate}") final Duration syncRateDuration) {
-        this.articleRepository = articleRepository;
-        this.articleFetcher = articleFetcher;
-        this.articlesFeedUrl = articlesFeedUrl;
-        this.syncRateDuration = syncRateDuration;
-    }
-
     @Transactional
     @Scheduled(fixedDelayString = "${task.fetch-toppsaker.fixed-delay}",
                initialDelayString = "${task.fetch-toppsaker.initial-delay}")
     public void run() {
-        log.trace("Run task");
+        log.trace("Run task {}", taskName);
         if (!shouldFetch()) {
             return;
         }
@@ -50,7 +39,8 @@ class FetchToppsakerTask {
         final List<Article> articles = articleFetcher.fetch(articlesFeedUrl);
         final List<Article> newArticles = articleRepository.filterOutExistingArticles(articles);
 
-        log.info("Found {} / {} new news articles from {}", newArticles.size(), articles.size(), articlesFeedUrl);
+        log.info("{}: Found {} / {} new news articles from {}",
+                 taskName, newArticles.size(), articles.size(), articlesFeedUrl);
         newArticles.forEach(articleRepository::save);
         lastFetchTime = LocalDateTime.now();
     }
@@ -64,13 +54,13 @@ class FetchToppsakerTask {
      * @return true if articles should be fetched, false otherwise.
      */
     private boolean shouldFetch() {
-        log.trace("Last fetch time: {}", lastFetchTime);
+        log.trace("{}: Last fetch time: {}", taskName, lastFetchTime);
         if (lastFetchTime == null) {
             return true;
         }
 
         final LocalDateTime nextSyncTime = lastFetchTime.plusSeconds(syncRateDuration.toSeconds());
-        log.trace("Next sync time: {}", nextSyncTime);
+        log.trace("{}: Next sync time: {}", taskName, nextSyncTime);
         return LocalDateTime.now().compareTo(nextSyncTime) >= 0;
     }
 }

@@ -10,7 +10,9 @@ import no.toreb.nrknewsconsumer.task.ArticleFeedParser;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,7 +37,6 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = NrkNewsConsumerApplication.class,
@@ -59,6 +60,9 @@ class NrkNewsConsumerApplicationTests {
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
+    @Captor
+    private ArgumentCaptor<String> urlCaptor;
+
     @LocalServerPort
     private int port;
 
@@ -79,9 +83,9 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    void shouldScheduledTaskToFetchesArticles() {
+    void shouldScheduleTasksToFetchesArticles() {
         final String testFeedContent = getTestFeedContent();
-        when(restTemplate.getForEntity(any(),
+        when(restTemplate.getForEntity(urlCaptor.capture(),
                                        ArgumentMatchers.<Class<String>>any(),
                                        ArgumentMatchers.<Object>any()))
                 .thenReturn(ResponseEntity.ok(testFeedContent));
@@ -89,6 +93,8 @@ class NrkNewsConsumerApplicationTests {
         await().atMost(Duration.ofSeconds(30)).pollDelay(Duration.ofSeconds(1))
                .untilAsserted(() -> {
                    try {
+                       final long distinctUrls = urlCaptor.getAllValues().stream().distinct().count();
+                       assertThat(distinctUrls).isEqualTo(2);
                        assertThat(getArticlesCount()).isEqualTo(98);
                    } catch (final Exception e) {
                        // Sqlite in-memory with shared cache throws exception if reading from db when other connection
