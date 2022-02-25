@@ -1,6 +1,6 @@
 {
   "name": "nrk-news-consumer",
-  "version": "0.0.1",
+  "version": "0.0.0-SNAPSHOT",
   "dependencies": {
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.9.1",
