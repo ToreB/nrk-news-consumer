@@ -5,19 +5,19 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.0</version>
+        <version>2.6.4</version>
     </parent>
     <groupId>no.toreb</groupId>
     <artifactId>nrk-news-consumer</artifactId>
     <version>0.0.0-SNAPSHOT</version>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
 
         <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
-        <json.version>20210307</json.version>
+        <json.version>20211205</json.version>
         <flyway-spring-test.version>7.0.0</flyway-spring-test.version>
-        <commons-io.version>2.9.0</commons-io.version>
+        <commons-io.version>2.11.0</commons-io.version>
     </properties>
 
     <dependencies>
