@@ -49,15 +49,10 @@ function git_add {
 
 function release_version {
   version="$1"
-  snapshot="$2"
 
-  git_add
-  git commit -m "New version $version"
   git tag "v$version"
 
-  set_version "$snapshot"
-  git_add
-  git commit -m "New snapshot version $snapshot"
+  set_version "0.0.0-SNAPSHOT"
 }
 
 # Check if uncommitted changes
@@ -69,15 +64,10 @@ if [ -z "$new_version" ]; then
   git tag --sort=-v:refname | head -n 3
   exit 1
 fi
-next_snapshot="$2"
-if [ -z "$next_snapshot" ]; then
-  echo "Needs to specify next snapshot version as second argument (do not suffix with -SNAPSHOT)."
-  exit 1
-fi
 
 set_version "$new_version"
 build_jar
-release_version "$new_version" "$next_snapshot-SNAPSHOT"
+release_version "$new_version"
 
 app_name='nrk-news-consumer'
 jar_file="$app_name.jar"
