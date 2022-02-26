@@ -28,6 +28,14 @@ import java.util.stream.Collectors;
 @SuppressWarnings({ "java:S1192" })
 public class ArticleRepository {
 
+    public static final List<String> UKRAINE_RUSSIA_PATTERNS = List.of(
+            "%ukraina%", "%ukraine%", "%russland%", "%russia%"
+    );
+    private static final List<String> COVID_19_PATTERNS = List.of(
+            "%korona%", "%covid%19%", "%vaksine%", "%vaksinasjon%", "%smitte%", "%pandemi%", "%epidemi%",
+            "%omikron%", "%omicron%", "%virus%"
+    );
+
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private final ArticleRowMapper rowMapper;
@@ -156,39 +164,57 @@ public class ArticleRepository {
 
     @Transactional(readOnly = true)
     public List<Article> findAllCovid19(final long limit, final long offset) {
-        final String sql = buildCovid19ArticlesSql("select *",
-                                                   "order by published_at, gen_id",
-                                                   limit,
-                                                   offset);
+        final String sql = buildArticlesFilterSql("select *",
+                                                  "order by published_at, gen_id",
+                                                  COVID_19_PATTERNS,
+                                                  limit,
+                                                  offset);
 
         return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
     }
 
     @Transactional(readOnly = true)
     public long countCovid19() {
-        final String sql = buildCovid19ArticlesSql("select count(1)", null, null, null);
+        final String sql = buildArticlesFilterSql("select count(1)", null, COVID_19_PATTERNS, null, null);
 
         //noinspection ConstantConditions
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.emptyMap(), Long.class);
     }
 
-    private String buildCovid19ArticlesSql(final String select,
-                                           final String orderBy,
-                                           final Long limit,
-                                           final Long offset) {
-        final List<String> patterns = List.of(
-                "%korona%", "%covid%19%", "%vaksine%", "%vaksinasjon%", "%smitte%", "%pandemi%", "%epidemi%",
-                "%omikron%", "%omicron%", "%virus%"
-        );
+    @Transactional(readOnly = true)
+    public List<Article> findAllUkraineRussia(final long limit, final long offset) {
+        final String sql = buildArticlesFilterSql("select *",
+                                                  "order by published_at, gen_id",
+                                                  UKRAINE_RUSSIA_PATTERNS,
+                                                  limit,
+                                                  offset);
+
+        return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
+    }
+
+    @Transactional(readOnly = true)
+    public long countUkraineRussia() {
+        final String sql = buildArticlesFilterSql("select count(1)", null, UKRAINE_RUSSIA_PATTERNS, null, null);
+
+        //noinspection ConstantConditions
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.emptyMap(), Long.class);
+    }
+
+    private String buildArticlesFilterSql(final String select,
+                                          final String orderBy,
+                                          final List<String> filterPatterns,
+                                          final Long limit,
+                                          final Long offset) {
         final List<String> columns = List.of("ac.category", "a.description", "a.title");
 
         final String patternMatchingClause =
                 "and (" +
-                patterns.stream()
-                        .map(pattern -> columns.stream()
-                                               .map(column -> String.format("lower(%s) like '%s'", column, pattern))
-                                               .collect(Collectors.joining(" or ")))
-                        .collect(Collectors.joining(" or ")) +
+                filterPatterns.stream()
+                              .map(pattern -> columns.stream()
+                                                     .map(column -> String.format("lower(%s) like '%s'",
+                                                                                  column, pattern))
+                                                     .collect(Collectors.joining(" or ")))
+                              .collect(Collectors.joining(" or ")) +
                 ")";
 
         return select +

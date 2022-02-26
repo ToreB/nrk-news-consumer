@@ -7,6 +7,7 @@ import Covid19ArticlesPage from "./article/Covid19ArticlesPage";
 import HiddenArticlesPage from "./article/HiddenArticlesPage";
 import NonHiddenArticlesPage from "./article/NonHiddenArticlesPage";
 import ReadLaterArticlesPage from "./article/ReadLaterArticlesPage";
+import UkraineRussiaArticlesPage from "./article/UkraineRussiaArticlesPage";
 import Footer from './common/Footer';
 import Header from "./common/Header";
 import Navigation from "./common/Navigation";
@@ -43,6 +44,9 @@ function App({ buildProperties, apiContextPath }) {
                         </Route>
                         <Route path="/covid-19">
                             <Covid19ArticlesPage apiContextPath={apiContextPath} />
+                        </Route>
+                        <Route path="/ukraine-russia">
+                            <UkraineRussiaArticlesPage apiContextPath={apiContextPath} />
                         </Route>
                         <Route path="/">
                             <NonHiddenArticlesPage apiContextPath={apiContextPath} />

@@ -7,24 +7,12 @@ export const Mode = {
     NON_HIDDEN: "non-hidden",
     HIDDEN: "hidden",
     COVID_19: "covid-19",
+    UKRAINE_RUSSIA: "ukraine-russia",
     READ_LATER: "read-later"
 };
 
 function resolvePath(apiContextPath, mode) {
-    let path = `${apiContextPath}/articles`;
-    switch (mode) {
-        case Mode.HIDDEN:
-            path += "/hidden";
-            break;
-        case Mode.COVID_19:
-            path += "/covid-19"
-            break;
-        case Mode.READ_LATER:
-            path += "/read-later"
-            break;
-    }
-
-    return path;
+    return `${apiContextPath}/articles/${mode !== Mode.NON_HIDDEN ? mode : ''}`;
 }
 
 function fetchArticles(apiContextPath, page, mode) {

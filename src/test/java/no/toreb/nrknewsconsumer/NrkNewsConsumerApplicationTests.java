@@ -84,7 +84,7 @@ class NrkNewsConsumerApplicationTests {
 
     @Test
     void shouldScheduleTasksToFetchesArticles() {
-        final String testFeedContent = getTestFeedContent();
+        final String testFeedContent = getTestFeedContent("/test-feed-toppsaker.rss");
         when(restTemplate.getForEntity(urlCaptor.capture(),
                                        ArgumentMatchers.<Class<String>>any(),
                                        ArgumentMatchers.<Object>any()))
@@ -180,6 +180,45 @@ class NrkNewsConsumerApplicationTests {
                                                          ArticleResponse.class),
                                secondPage);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=3&size=5"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         ArticleResponse.class),
+                               thirdPageSize5);
+    }
+
+    @Test
+    void shouldProvideApiForFetchingUkraineRussiaArticles() {
+        insertUkraineRussiaTestData();
+
+        final List<Article> ukraineRussiaArticles = getAllUkraineRussiaArticles();
+        final List<Article> firstPage = ukraineRussiaArticles.stream()
+                                                             .limit(10)
+                                                             .collect(Collectors.toList());
+        final List<Article> secondPage = ukraineRussiaArticles.stream()
+                                                              .skip(10)
+                                                              .limit(10)
+                                                              .collect(Collectors.toList());
+        final List<Article> thirdPageSize5 = ukraineRussiaArticles.stream()
+                                                                  .skip(10)
+                                                                  .limit(5)
+                                                                  .collect(Collectors.toList());
+
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/ukraine-russia"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         ArticleResponse.class),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/ukraine-russia?page=1&size=10"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         ArticleResponse.class),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/ukraine-russia?page=2"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         ArticleResponse.class),
+                               secondPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/ukraine-russia?page=3&size=5"),
                                                          HttpMethod.GET,
                                                          null,
                                                          ArticleResponse.class),
@@ -377,7 +416,14 @@ class NrkNewsConsumerApplicationTests {
     }
 
     private void insertTestData() {
-        final String testFeedContent = getTestFeedContent();
+        final String testFeedContent = getTestFeedContent("/test-feed-toppsaker.rss");
+        new ArticleFeedParser()
+                .parseFeed(testFeedContent)
+                .forEach(articleRepository::save);
+    }
+
+    private void insertUkraineRussiaTestData() {
+        final String testFeedContent = getTestFeedContent("/test-feed-ukraine-russia.rss");
         new ArticleFeedParser()
                 .parseFeed(testFeedContent)
                 .forEach(articleRepository::save);
@@ -385,8 +431,8 @@ class NrkNewsConsumerApplicationTests {
 
     @SneakyThrows
     @SuppressWarnings("ConstantConditions")
-    private String getTestFeedContent() {
-        final List<String> lines = IOUtils.readLines(getClass().getResourceAsStream("/test-feed-toppsaker.rss"),
+    private String getTestFeedContent(final String feedFile) {
+        final List<String> lines = IOUtils.readLines(getClass().getResourceAsStream(feedFile),
                                                      Charset.defaultCharset());
         return String.join("", lines);
     }
@@ -403,6 +449,23 @@ class NrkNewsConsumerApplicationTests {
 
     private List<Article> getAllCovid19Articles() {
         final String regex = "(.*?korona.*|covid[ -]?19|.*?vaksine.*|.*?smitte.*|.*?pandemi.*|.*?epidemi.*)";
+        return getAllArticles()
+                .stream()
+                .filter(article -> article.getCategories()
+                                          .stream()
+                                          .anyMatch(it -> it.getCategory()
+                                                            .toLowerCase()
+                                                            .matches(regex))
+                                   || article.getDescription()
+                                             .toLowerCase()
+                                             .matches(regex)
+                                   || article.getTitle().toLowerCase().matches(regex))
+                .filter(article -> !article.isHidden())
+                .collect(Collectors.toList());
+    }
+
+    private List<Article> getAllUkraineRussiaArticles() {
+        final String regex = "(.*?(ukraina|ukraine|russland|russia).*)";
         return getAllArticles()
                 .stream()
                 .filter(article -> article.getCategories()
