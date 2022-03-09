@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -28,8 +27,6 @@ public class FetchArticlesTask {
     private LocalDateTime lastFetchTime;
 
     @Transactional
-    @Scheduled(fixedDelayString = "${task.fetch-toppsaker.fixed-delay}",
-               initialDelayString = "${task.fetch-toppsaker.initial-delay}")
     public void run() {
         log.trace("Run task {}", taskName);
         if (!shouldFetch()) {
