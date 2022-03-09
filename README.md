@@ -1,11 +1,11 @@
 # nrk-news-consumer
 App that continuously fetches new articles from NRK's RSS feeds (mainly the frontpage articles), and persists the 
 article metadata to a local database.  
-The article metadata (which includes the article link, title, description and image link among others) is then used to 
+The article metadata, which includes the article link, title, description and image link among others, is then used to 
 present a view of articles for later reading.  
 This allows for reading articles at your own pace, without having to worry about them "disappearing" from the NRK front
 page.  
-Articles are hidden / marked as read when the article link is clicked (which opens the article in a new tab), but can 
+Articles are hidden / marked as read when the article link is clicked, which opens the article in a new tab, but can 
 also be manually hidden.  
 Articles can also be marked for later reading, which moves them from the main article view to a read later view.  
 
