@@ -34,6 +34,12 @@ class TasksConfig {
         return new FetchArticlesTaskConfigProperties();
     }
 
+    @Bean
+    @ConfigurationProperties("task.fetch-urix")
+    FetchArticlesTaskConfigProperties fetchTUrixTaskConfigProps() {
+        return new FetchArticlesTaskConfigProperties();
+    }
+
     @Configuration
     @EnableScheduling
     @RequiredArgsConstructor

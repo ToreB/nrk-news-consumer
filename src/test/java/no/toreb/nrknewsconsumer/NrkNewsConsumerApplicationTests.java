@@ -29,9 +29,9 @@ import org.springframework.web.client.RestTemplate;
 import org.sqlite.SQLiteException;
 
 import java.nio.charset.Charset;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,11 +90,11 @@ class NrkNewsConsumerApplicationTests {
                                        ArgumentMatchers.<Object>any()))
                 .thenReturn(ResponseEntity.ok(testFeedContent));
 
-        await().atMost(Duration.ofSeconds(30)).pollDelay(Duration.ofSeconds(1))
+        await().atMost(10, TimeUnit.SECONDS).pollDelay(1, TimeUnit.SECONDS)
                .untilAsserted(() -> {
                    try {
                        final long distinctUrls = urlCaptor.getAllValues().stream().distinct().count();
-                       assertThat(distinctUrls).isEqualTo(2);
+                       assertThat(distinctUrls).isEqualTo(3);
                        assertThat(getArticlesCount()).isEqualTo(98);
                    } catch (final Exception e) {
                        // Sqlite in-memory with shared cache throws exception if reading from db when other connection
