@@ -25,5 +25,12 @@ module.exports = {
                 }]
             }
         ]
-    }
+    },
+    plugins: [
+        function() {
+            this.hooks.done.tap('BuildStatsPlugin', function() {
+                console.log(new Date().toLocaleTimeString());
+            });
+        }
+    ]
 };
