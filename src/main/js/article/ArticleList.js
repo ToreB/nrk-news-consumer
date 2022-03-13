@@ -1,7 +1,7 @@
 import { Button, Chip, Grid, IconButton, Switch } from "@material-ui/core";
 import WatchLaterIcon from "@material-ui/icons/WatchLater";
 import WatchLaterOutlinedIcon from "@material-ui/icons/WatchLaterOutlined";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 
 export const Mode = {
     NON_HIDDEN: "non-hidden",
@@ -92,10 +92,18 @@ function ArticleList({ apiContextPath, mode }) {
             })
         setHiddenToggledArticles([]);
         setReadLaterToggledArticles([]);
-        window.scrollTo(0, 0);
     };
 
-    useEffect(() => loadArticles(), [page]);
+    useEffect(() => {
+        window.scrollTo(0, 0);
+        loadArticles();
+    }, [page]);
+    useLayoutEffect(() => {
+        const newArticleIndicators = document.getElementsByClassName('newArticleIndicator');
+        if (newArticleIndicators.length) {
+            newArticleIndicators[0].scrollIntoView(true);
+        }
+    }, [articles]);
 
     const buttonStyle = {
         fontSize: '24px',
@@ -196,7 +204,8 @@ function ArticleElement({ article, toggleArticleVisibilityFunction, toggleReadLa
         value => toggleReadLaterFunction(article.articleId, value, () => setReadLater(value));
     return (
         <Grid item key={article.articleId} style={itemStyle} xs={12}>
-            <div style={article.isNew ? newArticleIndicatorStyle : { display: 'None' }} />
+            <div className={article.isNew ? 'newArticleIndicator' : null}
+                 style={article.isNew ? newArticleIndicatorStyle : { display: 'None' }} />
             <Grid container alignItems="center">
                 <Grid item xs={6}>
                     <p style={publishedStyle}>{formatDate(article.publishedAt)}</p>
