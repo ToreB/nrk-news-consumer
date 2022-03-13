@@ -13,6 +13,12 @@
       <height>114</height>
     </image>
     <item>
+      <title>Test item without date</title>
+      <link>https://the-test-url.no</link>
+      <description>The description</description>
+      <guid isPermaLink="false">test-id-1</guid>
+    </item>
+    <item>
       <title>Rundt 2000 personer samlet i Oslo</title>
       <link>https://www.nrk.no/nyheter/rundt-2000-personer-samlet-i-oslo-1.15524969</link>
       <description>Rundt 2000 personer skal være samlet på St. Hanshaugen i Oslo lørdag kveld. Det melder politiet i Oslo som har fått inn mange klager på høy musikk. De jobber nå med å få slått av musikkanlegg av hensyn til beboere. Patruljene på stedet melder ellers om god stemning.</description>

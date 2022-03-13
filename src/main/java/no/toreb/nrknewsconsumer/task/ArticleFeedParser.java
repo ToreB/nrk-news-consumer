@@ -10,6 +10,7 @@ import org.json.XML;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Comparator;
@@ -35,7 +36,7 @@ public class ArticleFeedParser {
             final String articleId = extractArticleId(item);
             final String articleLink = item.optString("link", null);
             if (articleId == null && !StringUtils.hasText(articleLink)) {
-                log.info("Found article without ID and link. It will be skipped. Article: {}", item);
+                log.warn("Found article without ID and link. It will be skipped. Article: {}", item);
                 return;
             }
 
@@ -58,14 +59,21 @@ public class ArticleFeedParser {
                                              .build());
             }
 
+            final String dateString = item.optString("dc:date", null);
+            final OffsetDateTime publishedAt;
+            if (dateString != null) {
+                publishedAt = OffsetDateTime.parse(dateString).withOffsetSameInstant(ZoneOffset.UTC);
+            } else {
+                log.warn("Found article without date. Current date and time will be used. Article: {}", item);
+                publishedAt = OffsetDateTime.now(Clock.systemUTC());
+            }
             final Article article = Article.builder()
                                            .articleId(articleId)
                                            .title(item.getString("title"))
                                            .description(item.optString("description", null))
                                            .link(articleLink)
                                            .author(item.optString("dc:creator", null))
-                                           .publishedAt(OffsetDateTime.parse(item.getString("dc:date"))
-                                                                      .withOffsetSameInstant(ZoneOffset.UTC))
+                                           .publishedAt(publishedAt)
                                            .categories(articleCategories)
                                            .media(articleMedia)
                                            .build();
