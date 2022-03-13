@@ -21,7 +21,7 @@ function Header({ appName }) {
         <header className={classes.root}>
             <AppBar position="static">
                 <Toolbar>
-                    <Typography className={classes.title} variant="h7">{appName}</Typography>
+                    <Typography className={classes.title} variant="h6">{appName}</Typography>
 
                     <nav>
                         <Button color="inherit" component={Link} to="/">Articles</Button>
