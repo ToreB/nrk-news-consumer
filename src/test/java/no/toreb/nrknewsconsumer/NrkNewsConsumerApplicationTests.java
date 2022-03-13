@@ -113,38 +113,8 @@ class NrkNewsConsumerApplicationTests {
         insertTestData();
 
         final List<Article> articles = getAllNonHandledArticles();
-        final List<Article> firstPage = articles.stream()
-                                                .limit(10)
-                                                .collect(Collectors.toList());
-        final List<Article> secondPage = articles.stream()
-                                                 .skip(10)
-                                                 .limit(10)
-                                                 .collect(Collectors.toList());
-        final List<Article> thirdPageSize5 = articles.stream()
-                                                     .skip(10)
-                                                     .limit(5)
-                                                     .collect(Collectors.toList());
 
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles?page=1&size=10"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles?page=2"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               secondPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles?page=3&size=5"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               thirdPageSize5);
+        assertArticlesApi("/articles", articles);
     }
 
     @Test
@@ -152,38 +122,8 @@ class NrkNewsConsumerApplicationTests {
         insertTestData();
 
         final List<Article> covid19Articles = getAllCovid19Articles();
-        final List<Article> firstPage = covid19Articles.stream()
-                                                       .limit(10)
-                                                       .collect(Collectors.toList());
-        final List<Article> secondPage = covid19Articles.stream()
-                                                        .skip(10)
-                                                        .limit(10)
-                                                        .collect(Collectors.toList());
-        final List<Article> thirdPageSize5 = covid19Articles.stream()
-                                                            .skip(10)
-                                                            .limit(5)
-                                                            .collect(Collectors.toList());
 
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=1&size=10"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=2"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               secondPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/covid-19?page=3&size=5"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               thirdPageSize5);
+        assertArticlesApi("/articles/covid-19", covid19Articles);
     }
 
     @Test
@@ -191,42 +131,12 @@ class NrkNewsConsumerApplicationTests {
         insertUkraineRussiaTestData();
 
         final List<Article> ukraineRussiaArticles = getAllUkraineRussiaArticles();
-        final List<Article> firstPage = ukraineRussiaArticles.stream()
-                                                             .limit(10)
-                                                             .collect(Collectors.toList());
-        final List<Article> secondPage = ukraineRussiaArticles.stream()
-                                                              .skip(10)
-                                                              .limit(10)
-                                                              .collect(Collectors.toList());
-        final List<Article> thirdPageSize5 = ukraineRussiaArticles.stream()
-                                                                  .skip(10)
-                                                                  .limit(5)
-                                                                  .collect(Collectors.toList());
 
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/ukraine-russia"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/ukraine-russia?page=1&size=10"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/ukraine-russia?page=2"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               secondPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/ukraine-russia?page=3&size=5"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               thirdPageSize5);
+        assertArticlesApi("/articles/ukraine-russia", ukraineRussiaArticles);
     }
 
     @Test
-    void shouldProvideApiForControllingVisibilityArticles() {
+    void shouldProvideApiForControllingVisibilityOfArticles() {
         insertTestData();
 
         final List<Article> articles = getAllNonHandledArticles();
@@ -265,38 +175,7 @@ class NrkNewsConsumerApplicationTests {
         final List<Article> hiddenArticles = getAllHiddenArticles();
         Collections.reverse(hiddenArticles);
 
-        final List<Article> firstPage = hiddenArticles.stream()
-                                                      .limit(10)
-                                                      .collect(Collectors.toList());
-        final List<Article> secondPage = hiddenArticles.stream()
-                                                       .skip(10)
-                                                       .limit(10)
-                                                       .collect(Collectors.toList());
-        final List<Article> thirdPageSize5 = hiddenArticles.stream()
-                                                           .skip(10)
-                                                           .limit(5)
-                                                           .collect(Collectors.toList());
-
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden?page=1&size=10"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden?page=2"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               secondPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/hidden?page=3&size=5"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               thirdPageSize5);
+        assertArticlesApi("/articles/hidden", hiddenArticles);
     }
 
     @Test
@@ -329,38 +208,7 @@ class NrkNewsConsumerApplicationTests {
 
         final List<Article> readLaterArticles = getAllReadLaterArticles();
 
-        final List<Article> firstPage = readLaterArticles.stream()
-                                                         .limit(10)
-                                                         .collect(Collectors.toList());
-        final List<Article> secondPage = readLaterArticles.stream()
-                                                          .skip(10)
-                                                          .limit(10)
-                                                          .collect(Collectors.toList());
-        final List<Article> thirdPageSize5 = readLaterArticles.stream()
-                                                              .skip(10)
-                                                              .limit(5)
-                                                              .collect(Collectors.toList());
-
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=1&size=10"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=2"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               secondPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl("/articles/read-later?page=3&size=5"),
-                                                         HttpMethod.GET,
-                                                         null,
-                                                         ArticleResponse.class),
-                               thirdPageSize5);
+        assertArticlesApi("/articles/read-later", readLaterArticles);
     }
 
     @Test
@@ -520,5 +368,40 @@ class NrkNewsConsumerApplicationTests {
     @SuppressWarnings("ConstantConditions")
     private long getArticlesCount() {
         return jdbcTemplate.queryForObject("select count(*) from article", Collections.emptyMap(), Long.class);
+    }
+
+    private void assertArticlesApi(final String path, final List<Article> articles) {
+        final List<Article> firstPage = articles.stream()
+                                                .limit(10)
+                                                .collect(Collectors.toList());
+        final List<Article> secondPage = articles.stream()
+                                                 .skip(10)
+                                                 .limit(10)
+                                                 .collect(Collectors.toList());
+        final List<Article> thirdPageSize5 = articles.stream()
+                                                     .skip(10)
+                                                     .limit(5)
+                                                     .collect(Collectors.toList());
+
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl(path),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         ArticleResponse.class),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl(path + "?page=1&size=10"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         ArticleResponse.class),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl(path + "?page=2"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         ArticleResponse.class),
+                               secondPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl(path + "?page=3&size=5"),
+                                                         HttpMethod.GET,
+                                                         null,
+                                                         ArticleResponse.class),
+                               thirdPageSize5);
     }
 }
