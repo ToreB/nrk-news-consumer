@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,40 +24,45 @@ class ArticleController {
     private final ArticleRepository articleRepository;
 
     @GetMapping
-    public ArticleResponse getAllNonHandled(@RequestParam(value = "page", defaultValue = "1") final long page,
-                                            @RequestParam(value = "size", defaultValue = "10") final long size) {
-        final List<Article> articles = articleRepository.findAllNonHandled(size, calculateOffset(page, size));
+    public ArticleResponse getAllNonHandled(final PageParam pageParam) {
+        final List<Article> articles = articleRepository.findAllNonHandled(pageParam.getSize(),
+                                                                           calculateOffset(pageParam),
+                                                                           pageParam.getSortOrder());
         final long totalCount = articleRepository.countAllNonHandled();
         return new ArticleResponse(articles, totalCount);
     }
 
     @GetMapping("/hidden")
-    public ArticleResponse getAllHidden(@RequestParam(value = "page", defaultValue = "1") final long page,
-                                        @RequestParam(value = "size", defaultValue = "10") final long size) {
-        final List<Article> articles = articleRepository.findAllHidden(size, calculateOffset(page, size));
+    public ArticleResponse getAllHidden(final PageParam pageParam) {
+        final List<Article> articles = articleRepository.findAllHidden(pageParam.getSize(),
+                                                                       calculateOffset(pageParam),
+                                                                       pageParam.getSortOrder());
         return new ArticleResponse(articles, -1);
     }
 
     @GetMapping("/read-later")
-    public ArticleResponse getAllReadLater(@RequestParam(value = "page", defaultValue = "1") final long page,
-                                           @RequestParam(value = "size", defaultValue = "10") final long size) {
-        final List<Article> articles = articleRepository.findAllReadLater(size, calculateOffset(page, size));
+    public ArticleResponse getAllReadLater(final PageParam pageParam) {
+        final List<Article> articles = articleRepository.findAllReadLater(pageParam.getSize(),
+                                                                          calculateOffset(pageParam),
+                                                                          pageParam.getSortOrder());
         final long totalCount = articleRepository.countReadLater();
         return new ArticleResponse(articles, totalCount);
     }
 
     @GetMapping("/covid-19")
-    public ArticleResponse getAllCovid19(@RequestParam(value = "page", defaultValue = "1") final long page,
-                                         @RequestParam(value = "size", defaultValue = "10") final long size) {
-        final List<Article> articles = articleRepository.findAllCovid19(size, calculateOffset(page, size));
+    public ArticleResponse getAllCovid19(final PageParam pageParam) {
+        final List<Article> articles = articleRepository.findAllCovid19(pageParam.getSize(),
+                                                                        calculateOffset(pageParam),
+                                                                        pageParam.getSortOrder());
         final long totalCount = articleRepository.countCovid19();
         return new ArticleResponse(articles, totalCount);
     }
 
     @GetMapping("/ukraine-russia")
-    public ArticleResponse getAllUkraineRussia(@RequestParam(value = "page", defaultValue = "1") final long page,
-                                               @RequestParam(value = "size", defaultValue = "10") final long size) {
-        final List<Article> articles = articleRepository.findAllUkraineRussia(size, calculateOffset(page, size));
+    public ArticleResponse getAllUkraineRussia(final PageParam pageParam) {
+        final List<Article> articles = articleRepository.findAllUkraineRussia(pageParam.getSize(),
+                                                                              calculateOffset(pageParam),
+                                                                              pageParam.getSortOrder());
         final long totalCount = articleRepository.countUkraineRussia();
         return new ArticleResponse(articles, totalCount);
     }
@@ -89,7 +93,7 @@ class ArticleController {
                              .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 
-    private long calculateOffset(final long page, final long size) {
-        return (page - 1) * size;
+    private int calculateOffset(final PageParam pageParam) {
+        return (pageParam.getPage() - 1) * pageParam.getSize();
     }
 }

@@ -5,6 +5,7 @@ import no.toreb.nrknewsconsumer.controller.ArticleResponse;
 import no.toreb.nrknewsconsumer.controller.HideArticleRequest;
 import no.toreb.nrknewsconsumer.controller.ReadLaterRequest;
 import no.toreb.nrknewsconsumer.model.Article;
+import no.toreb.nrknewsconsumer.model.SortOrder;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
 import no.toreb.nrknewsconsumer.task.ArticleFeedParser;
 import org.apache.commons.io.IOUtils;
@@ -29,6 +30,7 @@ import org.springframework.web.client.RestTemplate;
 import org.sqlite.SQLiteException;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -114,7 +116,7 @@ class NrkNewsConsumerApplicationTests {
 
         final List<Article> articles = getAllNonHandledArticles();
 
-        assertArticlesApi("/articles", articles);
+        assertArticlesApi("/articles", articles, SortOrder.ASC);
     }
 
     @Test
@@ -123,7 +125,7 @@ class NrkNewsConsumerApplicationTests {
 
         final List<Article> covid19Articles = getAllCovid19Articles();
 
-        assertArticlesApi("/articles/covid-19", covid19Articles);
+        assertArticlesApi("/articles/covid-19", covid19Articles, SortOrder.ASC);
     }
 
     @Test
@@ -132,7 +134,7 @@ class NrkNewsConsumerApplicationTests {
 
         final List<Article> ukraineRussiaArticles = getAllUkraineRussiaArticles();
 
-        assertArticlesApi("/articles/ukraine-russia", ukraineRussiaArticles);
+        assertArticlesApi("/articles/ukraine-russia", ukraineRussiaArticles, SortOrder.ASC);
     }
 
     @Test
@@ -142,11 +144,11 @@ class NrkNewsConsumerApplicationTests {
         final List<Article> articles = getAllNonHandledArticles();
 
         hideArticle(articles.get(0), true);
-        assertThat(articleRepository.findAllHidden(10, 0))
+        assertThat(articleRepository.findAllHidden(10, 0, SortOrder.ASC))
                 .isEqualTo(List.of(articles.get(0).toBuilder().hidden(true).build()));
 
         hideArticle(articles.get(0), false);
-        assertThat(articleRepository.findAllHidden(10, 0)).isEqualTo(Collections.emptyList());
+        assertThat(articleRepository.findAllHidden(10, 0, SortOrder.ASC)).isEqualTo(Collections.emptyList());
     }
 
     private void hideArticle(final Article article, final boolean hide) {
@@ -175,7 +177,7 @@ class NrkNewsConsumerApplicationTests {
         final List<Article> hiddenArticles = getAllHiddenArticles();
         Collections.reverse(hiddenArticles);
 
-        assertArticlesApi("/articles/hidden", hiddenArticles);
+        assertArticlesApi("/articles/hidden", hiddenArticles, SortOrder.DESC);
     }
 
     @Test
@@ -185,11 +187,11 @@ class NrkNewsConsumerApplicationTests {
         final List<Article> articles = getAllNonHandledArticles();
 
         addReadLater(articles.get(0), true);
-        assertThat(articleRepository.findAllReadLater(10, 0))
+        assertThat(articleRepository.findAllReadLater(10, 0, SortOrder.ASC))
                 .isEqualTo(List.of(articles.get(0).toBuilder().readLater(true).build()));
 
         addReadLater(articles.get(0), false);
-        assertThat(articleRepository.findAllReadLater(10, 0)).isEqualTo(Collections.emptyList());
+        assertThat(articleRepository.findAllReadLater(10, 0, SortOrder.ASC)).isEqualTo(Collections.emptyList());
     }
 
     @Test
@@ -208,7 +210,7 @@ class NrkNewsConsumerApplicationTests {
 
         final List<Article> readLaterArticles = getAllReadLaterArticles();
 
-        assertArticlesApi("/articles/read-later", readLaterArticles);
+        assertArticlesApi("/articles/read-later", readLaterArticles, SortOrder.ASC);
     }
 
     @Test
@@ -370,7 +372,7 @@ class NrkNewsConsumerApplicationTests {
         return jdbcTemplate.queryForObject("select count(*) from article", Collections.emptyMap(), Long.class);
     }
 
-    private void assertArticlesApi(final String path, final List<Article> articles) {
+    private void assertArticlesApi(final String path, final List<Article> articles, final SortOrder defaultSortOrder) {
         final List<Article> firstPage = articles.stream()
                                                 .limit(10)
                                                 .collect(Collectors.toList());
@@ -383,16 +385,27 @@ class NrkNewsConsumerApplicationTests {
                                                      .limit(5)
                                                      .collect(Collectors.toList());
 
+        final SortOrder reverseSortOrder = reverse(defaultSortOrder);
+        final List<Article> firstPageReverseSortOrder = reverse(articles).stream()
+                                                                         .limit(10)
+                                                                         .toList();
+
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl(path),
                                                          HttpMethod.GET,
                                                          null,
                                                          ArticleResponse.class),
                                firstPage);
-        assertArticlesResponse(testRestTemplate.exchange(getApiUrl(path + "?page=1&size=10"),
+        assertArticlesResponse(testRestTemplate.exchange(
+                                       getApiUrl(path + "?page=1&size=10&sortOrder=" + defaultSortOrder),
+                                       HttpMethod.GET,
+                                       null,
+                                       ArticleResponse.class),
+                               firstPage);
+        assertArticlesResponse(testRestTemplate.exchange(getApiUrl(path + "?sortOrder=" + reverseSortOrder),
                                                          HttpMethod.GET,
                                                          null,
                                                          ArticleResponse.class),
-                               firstPage);
+                               firstPageReverseSortOrder);
         assertArticlesResponse(testRestTemplate.exchange(getApiUrl(path + "?page=2"),
                                                          HttpMethod.GET,
                                                          null,
@@ -403,5 +416,19 @@ class NrkNewsConsumerApplicationTests {
                                                          null,
                                                          ArticleResponse.class),
                                thirdPageSize5);
+    }
+
+    private SortOrder reverse(final SortOrder sortOrder) {
+        if (sortOrder == SortOrder.ASC) {
+            return SortOrder.DESC;
+        } else {
+            return SortOrder.ASC;
+        }
+    }
+
+    private List<Article> reverse(final List<Article> articles) {
+        final ArrayList<Article> list = new ArrayList<>(articles);
+        Collections.reverse(list);
+        return list;
     }
 }

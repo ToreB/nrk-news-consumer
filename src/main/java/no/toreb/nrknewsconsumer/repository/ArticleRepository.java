@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.model.ArticleCategory;
 import no.toreb.nrknewsconsumer.model.ArticleMedia;
+import no.toreb.nrknewsconsumer.model.SortOrder;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings({ "java:S1192" })
 public class ArticleRepository {
 
-    public static final List<String> UKRAINE_RUSSIA_PATTERNS = List.of(
+    private static final List<String> UKRAINE_RUSSIA_PATTERNS = List.of(
             "%ukraina%", "%ukraine%", "%russland%", "%russia%"
     );
     private static final List<String> COVID_19_PATTERNS = List.of(
@@ -53,13 +55,13 @@ public class ArticleRepository {
 
         final List<String> articleIds = articles.stream()
                                                 .map(Article::getArticleId)
-                                                .collect(Collectors.toList());
+                                                .toList();
         final List<String> existingArticleIds =
                 namedParameterJdbcTemplate.queryForList(sql, Map.of("articleIds", articleIds), String.class);
 
         return articles.stream()
                        .filter(article -> !existingArticleIds.contains(article.getArticleId()))
-                       .collect(Collectors.toList());
+                       .toList();
     }
 
     @Transactional(readOnly = true)
@@ -76,11 +78,13 @@ public class ArticleRepository {
     }
 
     @Transactional(readOnly = true)
-    public List<Article> findAllNonHandled(final long limit, final long offset) {
-        final String sql = buildNonHandledArticlesSql("select *",
-                                                      "order by published_at, gen_id",
-                                                      limit,
-                                                      offset);
+    public List<Article> findAllNonHandled(final int limit, final int offset, final SortOrder sortOrder) {
+        final SortOrder resolvedSortOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.ASC);
+        final String sql = buildNonHandledArticlesSql(
+                "select *",
+                "order by published_at %s, gen_id %s".formatted(resolvedSortOrder, resolvedSortOrder),
+                limit,
+                offset);
 
         return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
     }
@@ -95,8 +99,8 @@ public class ArticleRepository {
 
     private String buildNonHandledArticlesSql(final String select,
                                               final String orderBy,
-                                              final Long limit,
-                                              final Long offset) {
+                                              final Integer limit,
+                                              final Integer offset) {
         return select +
                " from (" +
                "    select a.*, false as hidden, false as read_later" +
@@ -112,14 +116,15 @@ public class ArticleRepository {
     }
 
     @Transactional(readOnly = true)
-    public List<Article> findAllHidden(final long limit, final long offset) {
-        //noinspection SqlResolve
+    public List<Article> findAllHidden(final int limit, final int offset, final SortOrder sortOrder) {
+        final SortOrder resolvedSortOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.DESC);
+        final String orderBy = "order by ha.hidden_at %s, a.gen_id %s ".formatted(resolvedSortOrder, resolvedSortOrder);
         final String sql = "select a.*, true as hidden, rla.article is not null as read_later " +
                            "from article a " +
                            "left outer join hidden_articles ha on a.gen_id = ha.article " +
                            "left outer join read_later_articles rla on a.gen_id = rla.article " +
                            "where ha.article is not null " +
-                           "order by ha.hidden_at desc, a.gen_id " +
+                           orderBy +
                            "limit :limit " +
                            "offset :offset";
 
@@ -127,11 +132,13 @@ public class ArticleRepository {
     }
 
     @Transactional(readOnly = true)
-    public List<Article> findAllReadLater(final long limit, final long offset) {
-        final String sql = buildReadLaterArticlesSql("select *",
-                                                     "order by published_at, GEN_ID",
-                                                     limit,
-                                                     offset);
+    public List<Article> findAllReadLater(final int limit, final int offset, final SortOrder sortOrder) {
+        final SortOrder resolvedSortOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.ASC);
+        final String sql = buildReadLaterArticlesSql(
+                "select *",
+                "order by published_at %s, gen_id %s".formatted(resolvedSortOrder, resolvedSortOrder),
+                limit,
+                offset);
 
         return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
     }
@@ -146,8 +153,8 @@ public class ArticleRepository {
 
     private String buildReadLaterArticlesSql(final String select,
                                              final String orderBy,
-                                             final Long limit,
-                                             final Long offset) {
+                                             final Integer limit,
+                                             final Integer offset) {
         return select +
                " from (" +
                "    select a.*, false as hidden, true as read_later " +
@@ -163,12 +170,14 @@ public class ArticleRepository {
     }
 
     @Transactional(readOnly = true)
-    public List<Article> findAllCovid19(final long limit, final long offset) {
-        final String sql = buildArticlesFilterSql("select *",
-                                                  "order by published_at, gen_id",
-                                                  COVID_19_PATTERNS,
-                                                  limit,
-                                                  offset);
+    public List<Article> findAllCovid19(final int limit, final int offset, final SortOrder sortOrder) {
+        final SortOrder resolvedSortOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.ASC);
+        final String sql = buildArticlesFilterSql(
+                "select *",
+                "order by published_at %s, gen_id %s".formatted(resolvedSortOrder, resolvedSortOrder),
+                COVID_19_PATTERNS,
+                limit,
+                offset);
 
         return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
     }
@@ -182,12 +191,14 @@ public class ArticleRepository {
     }
 
     @Transactional(readOnly = true)
-    public List<Article> findAllUkraineRussia(final long limit, final long offset) {
-        final String sql = buildArticlesFilterSql("select *",
-                                                  "order by published_at, gen_id",
-                                                  UKRAINE_RUSSIA_PATTERNS,
-                                                  limit,
-                                                  offset);
+    public List<Article> findAllUkraineRussia(final int limit, final int offset, final SortOrder sortOrder) {
+        final SortOrder resolvedSortOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.ASC);
+        final String sql = buildArticlesFilterSql(
+                "select *",
+                "order by published_at %s, gen_id %s".formatted(resolvedSortOrder, resolvedSortOrder),
+                UKRAINE_RUSSIA_PATTERNS,
+                limit,
+                offset);
 
         return namedParameterJdbcTemplate.query(sql, Map.of("limit", limit, "offset", offset), rowMapper);
     }
@@ -203,8 +214,8 @@ public class ArticleRepository {
     private String buildArticlesFilterSql(final String select,
                                           final String orderBy,
                                           final List<String> filterPatterns,
-                                          final Long limit,
-                                          final Long offset) {
+                                          final Integer limit,
+                                          final Integer offset) {
         final List<String> columns = List.of("ac.category", "a.description", "a.title");
 
         final String patternMatchingClause =
@@ -260,6 +271,7 @@ public class ArticleRepository {
         final KeyHolder keyHolder = new GeneratedKeyHolder();
 
         namedParameterJdbcTemplate.update(sql, params, keyHolder, new String[] { "gen_id" });
+
         //noinspection ConstantConditions
         return keyHolder.getKey().longValue();
     }
