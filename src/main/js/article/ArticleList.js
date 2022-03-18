@@ -1,4 +1,4 @@
-import { Button, Chip, Grid, IconButton, Switch } from "@material-ui/core";
+import { Button, Chip, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Switch } from "@material-ui/core";
 import WatchLaterIcon from "@material-ui/icons/WatchLater";
 import WatchLaterOutlinedIcon from "@material-ui/icons/WatchLaterOutlined";
 import React, { useEffect, useLayoutEffect, useState } from 'react';
@@ -11,14 +11,19 @@ export const Mode = {
     READ_LATER: "read-later"
 };
 
+const SortOrder = {
+    ASC: "ASC",
+    DESC: "DESC"
+}
+
 function resolvePath(apiContextPath, mode) {
     return `${apiContextPath}/articles/${mode !== Mode.NON_HIDDEN ? mode : ''}`;
 }
 
-function fetchArticles(apiContextPath, page, mode) {
+function fetchArticles(apiContextPath, page, mode, sortOrder) {
     let path = resolvePath(apiContextPath, mode);
 
-    return fetch(`${path}?size=12&page=${page}`)
+    return fetch(`${path}?size=12&page=${page}&sortOrder=${sortOrder}`)
         .then(res => res.json());
 }
 
@@ -56,6 +61,7 @@ function ArticleList({ apiContextPath, mode }) {
     const [hiddenToggledArticles, setHiddenToggledArticles] = useState([]);
     const [readLaterToggledArticles, setReadLaterToggledArticles] = useState([]);
     const [totalCountArticles, setTotalCountArticles] = useState(0);
+    const [sortOrder, setSortOrder] = useState(mode === Mode.HIDDEN ? SortOrder.DESC : SortOrder.ASC)
 
     const toggleArticleVisibilityFunction = (articleId, toggled, callback) => {
         toggleArticleVisibility(apiContextPath, articleId, toggled, callback);
@@ -76,7 +82,7 @@ function ArticleList({ apiContextPath, mode }) {
     };
 
     const loadArticles = (isReload = false) => {
-        fetchArticles(apiContextPath, page, mode)
+        fetchArticles(apiContextPath, page, mode, sortOrder)
             .then(resultJson => {
                 setTotalCountArticles(resultJson.totalCount);
                 const fetchedArticles = resultJson.articles;
@@ -97,7 +103,7 @@ function ArticleList({ apiContextPath, mode }) {
     useEffect(() => {
         window.scrollTo(0, 0);
         loadArticles();
-    }, [page]);
+    }, [page, sortOrder]);
     useLayoutEffect(() => {
         const newArticleIndicators = document.getElementsByClassName('newArticleIndicator');
         if (newArticleIndicators.length) {
@@ -110,14 +116,18 @@ function ArticleList({ apiContextPath, mode }) {
         marginRight: '30px'
     };
 
-    const countViewStyle = {
-        display: mode === Mode.HIDDEN ? 'none' : 'block',
+    const headerViewStyle = {
+        display: 'block',
         border: '1px solid black',
         borderRadius: '5px',
         margin: '10px 10px 10px',
         padding: '0px 25px',
-        maxWidth: '350px',
+        maxWidth: '400px',
         fontWeight: 'bold'
+    }
+
+    const countViewStyle = {
+        display: mode === Mode.HIDDEN ? 'none' : 'block',
     };
 
     const countToggledArticles = hiddenToggledArticles.length + readLaterToggledArticles.length;
@@ -125,9 +135,27 @@ function ArticleList({ apiContextPath, mode }) {
         <div id="articles">
             <Grid container>
                 <Grid item xs={12}>
-                    <div style={countViewStyle}>
-                        <p>Articles in this view: {totalCountArticles}</p>
-                    </div>
+                    <Grid container style={headerViewStyle}>
+                        <Grid item style={countViewStyle}>
+                            <p>Articles in this view: {totalCountArticles}</p>
+                        </Grid>
+                        <Grid item>
+                            <FormControl fullWidth>
+                                <InputLabel id="sort-order-select-label">Sort order: </InputLabel>
+                                <Select labelId="sort-order-select-label"
+                                        id="sort-order-select"
+                                        value={sortOrder}
+                                        label="Sort order"
+                                        onChange={(event) => {
+                                            setSortOrder(event.target.value);
+                                            setPage(1);
+                                        }}>
+                                    <MenuItem value={SortOrder.ASC}>{SortOrder.ASC}</MenuItem>
+                                    <MenuItem value={SortOrder.DESC}>{SortOrder.DESC}</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
                 </Grid>
                 {articles.map(article => {
                     return <ArticleElement key={article.articleId}
