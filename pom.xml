@@ -2,22 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.4</version>
-    </parent>
     <groupId>no.toreb</groupId>
     <artifactId>nrk-news-consumer</artifactId>
     <version>0.0.0-SNAPSHOT</version>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.6.6</version>
+    </parent>
+
     <properties>
         <java.version>17</java.version>
 
-        <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
-        <json.version>20211205</json.version>
-        <flyway-spring-test.version>7.0.0</flyway-spring-test.version>
+        <json.version>20220320</json.version>
         <commons-io.version>2.11.0</commons-io.version>
+        <flyway-spring-test.version>7.0.0</flyway-spring-test.version>
+        <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     </properties>
 
     <dependencies>
