@@ -315,7 +315,7 @@ class NrkNewsConsumerApplicationTests {
     }
 
     private List<Article> getAllUkraineRussiaArticles() {
-        final String regex = "(.*?(ukraina|ukraine|russland|russia).*)";
+        final String regex = "(.*?(ukrain|russland|russ[ea]r|russisk).*)";
         return getAllArticles()
                 .stream()
                 .filter(article -> article.getCategories()
