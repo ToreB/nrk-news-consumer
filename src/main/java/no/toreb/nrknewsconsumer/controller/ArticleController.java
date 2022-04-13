@@ -1,8 +1,7 @@
 package no.toreb.nrknewsconsumer.controller;
 
 import lombok.RequiredArgsConstructor;
-import no.toreb.nrknewsconsumer.model.Article;
-import no.toreb.nrknewsconsumer.repository.ArticleRepository;
+import no.toreb.nrknewsconsumer.service.ArticleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -11,89 +10,47 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/articles")
 @RequiredArgsConstructor
 class ArticleController {
 
-    private final ArticleRepository articleRepository;
+    private final ArticleService articleService;
 
     @GetMapping
     public ArticleResponse getAllNonHandled(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllNonHandled(pageParam.getSize(),
-                                                                           calculateOffset(pageParam),
-                                                                           pageParam.getSortOrder());
-        final long totalCount = articleRepository.countAllNonHandled();
-        return new ArticleResponse(articles, totalCount);
+        return articleService.getAllNonHandled(pageParam);
     }
 
     @GetMapping("/hidden")
     public ArticleResponse getAllHidden(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllHidden(pageParam.getSize(),
-                                                                       calculateOffset(pageParam),
-                                                                       pageParam.getSortOrder());
-        return new ArticleResponse(articles, -1);
+        return articleService.getAllHidden(pageParam);
     }
 
     @GetMapping("/read-later")
     public ArticleResponse getAllReadLater(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllReadLater(pageParam.getSize(),
-                                                                          calculateOffset(pageParam),
-                                                                          pageParam.getSortOrder());
-        final long totalCount = articleRepository.countReadLater();
-        return new ArticleResponse(articles, totalCount);
+        return articleService.getAllReadLater(pageParam);
     }
 
     @GetMapping("/covid-19")
     public ArticleResponse getAllCovid19(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllCovid19(pageParam.getSize(),
-                                                                        calculateOffset(pageParam),
-                                                                        pageParam.getSortOrder());
-        final long totalCount = articleRepository.countCovid19();
-        return new ArticleResponse(articles, totalCount);
+        return articleService.getAllCovid19(pageParam);
     }
 
     @GetMapping("/ukraine-russia")
     public ArticleResponse getAllUkraineRussia(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllUkraineRussia(pageParam.getSize(),
-                                                                              calculateOffset(pageParam),
-                                                                              pageParam.getSortOrder());
-        final long totalCount = articleRepository.countUkraineRussia();
-        return new ArticleResponse(articles, totalCount);
+        return articleService.getAllUkraineRussia(pageParam);
     }
 
     @PutMapping("/hidden")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void hide(@RequestBody final HideArticleRequest request) {
-        if (request.isHide()) {
-            articleRepository.hideArticle(request.getArticleId(), currentDateTimeAsString());
-        } else {
-            articleRepository.showArticle(request.getArticleId());
-        }
+        articleService.toggleArticleVisibility(request.getArticleId(), request.isHide());
     }
 
     @PutMapping("/read-later")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void readLater(@RequestBody final ReadLaterRequest request) {
-        if (request.isReadLater()) {
-            articleRepository.addReadLater(request.getArticleId(), currentDateTimeAsString());
-        } else {
-            articleRepository.removeReadLater(request.getArticleId());
-        }
-    }
-
-    private String currentDateTimeAsString() {
-        return OffsetDateTime.now()
-                             .withOffsetSameInstant(ZoneOffset.UTC)
-                             .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    }
-
-    private int calculateOffset(final PageParam pageParam) {
-        return (pageParam.getPage() - 1) * pageParam.getSize();
+        articleService.toggleReadLater(request.getArticleId(), request.isReadLater());
     }
 }

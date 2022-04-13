@@ -265,8 +265,7 @@ public class ArticleRepository {
                 .addValue("description", article.getDescription())
                 .addValue("link", article.getLink())
                 .addValue("author", article.getAuthor())
-                .addValue("publishedAt", article.getPublishedAt()
-                                                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+                .addValue("publishedAt", format(article.getPublishedAt()));
 
         final KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -309,12 +308,13 @@ public class ArticleRepository {
     }
 
     @Transactional
-    public void hideArticle(final String articleId, final String hiddenAt) {
+    public void hideArticle(final String articleId, final OffsetDateTime hiddenAt) {
         //noinspection SqlResolve
         final String sql = "insert into hidden_articles (article, hidden_at) " +
                            "select GEN_ID, :hiddenAt from article where ARTICLE_ID = :articleId";
 
-        namedParameterJdbcTemplate.update(sql, Map.of("articleId", articleId, "hiddenAt", hiddenAt));
+        namedParameterJdbcTemplate.update(sql, Map.of("articleId", articleId,
+                                                      "hiddenAt", format(hiddenAt)));
     }
 
     @Transactional
@@ -326,11 +326,12 @@ public class ArticleRepository {
     }
 
     @Transactional
-    public void addReadLater(final String articleId, final String addedAt) {
+    public void addReadLater(final String articleId, final OffsetDateTime addedAt) {
         final String sql = "insert into read_later_articles (article, added_at) " +
                            "select GEN_ID, :addedAt from article where ARTICLE_ID = :articleId";
 
-        namedParameterJdbcTemplate.update(sql, Map.of("articleId", articleId, "addedAt", addedAt));
+        namedParameterJdbcTemplate.update(sql, Map.of("articleId", articleId,
+                                                      "addedAt", format(addedAt)));
     }
 
     @Transactional
@@ -339,6 +340,10 @@ public class ArticleRepository {
                            "where article = (select gen_id from article where ARTICLE_ID = :articleId)";
 
         namedParameterJdbcTemplate.update(sql, Map.of("articleId", articleId));
+    }
+
+    private String format(final OffsetDateTime offsetDateTime) {
+        return offsetDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 
     @RequiredArgsConstructor
