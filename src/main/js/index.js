@@ -1,10 +1,9 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import App from './App'
 
 export function initializeApp(elementId, props) {
-    ReactDOM.render(
-        <App {...props} />,
-        document.getElementById(elementId)
-    );
+    const element = document.getElementById(elementId);
+    const root = createRoot(element);
+    root.render(<App {...props} />);
 }
