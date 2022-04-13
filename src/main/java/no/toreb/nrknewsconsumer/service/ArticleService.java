@@ -1,6 +1,8 @@
 package no.toreb.nrknewsconsumer.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import no.toreb.nrknewsconsumer.controller.ArticleResponse;
 import no.toreb.nrknewsconsumer.controller.PageParam;
 import no.toreb.nrknewsconsumer.model.Article;
@@ -10,7 +12,11 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
@@ -18,11 +24,10 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
 
     public ArticleResponse getAllNonHandled(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllNonHandled(pageParam.getSize(),
-                                                                           calculateOffset(pageParam),
-                                                                           pageParam.getSortOrder());
-        final long totalCount = articleRepository.countAllNonHandled();
-        return new ArticleResponse(articles, totalCount);
+        return createArticleResponse(() -> articleRepository.findAllNonHandled(pageParam.getSize(),
+                                                                               calculateOffset(pageParam),
+                                                                               pageParam.getSortOrder()),
+                                     articleRepository::countAllNonHandled);
     }
 
     public ArticleResponse getAllHidden(final PageParam pageParam) {
@@ -33,27 +38,24 @@ public class ArticleService {
     }
 
     public ArticleResponse getAllReadLater(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllReadLater(pageParam.getSize(),
-                                                                          calculateOffset(pageParam),
-                                                                          pageParam.getSortOrder());
-        final long totalCount = articleRepository.countReadLater();
-        return new ArticleResponse(articles, totalCount);
+        return createArticleResponse(() -> articleRepository.findAllReadLater(pageParam.getSize(),
+                                                                              calculateOffset(pageParam),
+                                                                              pageParam.getSortOrder()),
+                                     articleRepository::countReadLater);
     }
 
     public ArticleResponse getAllCovid19(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllCovid19(pageParam.getSize(),
-                                                                        calculateOffset(pageParam),
-                                                                        pageParam.getSortOrder());
-        final long totalCount = articleRepository.countCovid19();
-        return new ArticleResponse(articles, totalCount);
+        return createArticleResponse(() -> articleRepository.findAllCovid19(pageParam.getSize(),
+                                                                            calculateOffset(pageParam),
+                                                                            pageParam.getSortOrder()),
+                                     articleRepository::countCovid19);
     }
 
     public ArticleResponse getAllUkraineRussia(final PageParam pageParam) {
-        final List<Article> articles = articleRepository.findAllUkraineRussia(pageParam.getSize(),
-                                                                              calculateOffset(pageParam),
-                                                                              pageParam.getSortOrder());
-        final long totalCount = articleRepository.countUkraineRussia();
-        return new ArticleResponse(articles, totalCount);
+        return createArticleResponse(() -> articleRepository.findAllUkraineRussia(pageParam.getSize(),
+                                                                                  calculateOffset(pageParam),
+                                                                                  pageParam.getSortOrder()),
+                                     articleRepository::countUkraineRussia);
     }
 
     public void toggleArticleVisibility(final String articleId, final boolean hide) {
@@ -69,6 +71,35 @@ public class ArticleService {
             articleRepository.addReadLater(articleId, currentDateTimeUtc());
         } else {
             articleRepository.removeReadLater(articleId);
+        }
+    }
+
+    private ArticleResponse createArticleResponse(final Supplier<List<Article>> articlesSupplier,
+                                                  final Supplier<Long> articleCountSupplier) {
+        final CompletableFuture<List<Article>> articlesFuture = CompletableFuture.supplyAsync(articlesSupplier);
+        final CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(articleCountSupplier);
+
+        try {
+            return new ArticleResponse(get(articlesFuture), get(countFuture));
+        } catch (final Exception e) {
+            cancel(articlesFuture);
+            cancel(countFuture);
+            throw e;
+        }
+    }
+
+    @SneakyThrows
+    private <T> T get(final CompletableFuture<T> future) {
+        return future.get(30, TimeUnit.SECONDS);
+    }
+
+    private void cancel(final CompletableFuture<?> future) {
+        try {
+            if (!future.isDone()) {
+                future.cancel(true);
+            }
+        } catch (final Exception e) {
+            log.error("Error occurred when cancelling CompletableFuture.", e);
         }
     }
 
