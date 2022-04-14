@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.repository.ArticleRepository;
+import no.toreb.nrknewsconsumer.repository.SaveResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -34,11 +35,17 @@ public class FetchArticlesTask {
         }
 
         final List<Article> articles = articleFetcher.fetch(articlesFeedUrl);
-        final List<Article> newArticles = articleRepository.filterOutExistingArticles(articles);
+
+        int countInserted = 0;
+        for (final Article article : articles) {
+            final SaveResult result = articleRepository.save(article);
+            if (result == SaveResult.INSERTED) {
+                countInserted++;
+            }
+        }
 
         log.info("{}: Found {} / {} new news articles from {}",
-                 taskName, newArticles.size(), articles.size(), articlesFeedUrl);
-        newArticles.forEach(articleRepository::save);
+                 taskName, countInserted, articles.size(), articlesFeedUrl);
         lastFetchTime = LocalDateTime.now();
     }
 

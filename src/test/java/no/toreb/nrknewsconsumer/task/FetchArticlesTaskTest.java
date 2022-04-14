@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,7 +68,7 @@ class FetchArticlesTaskTest {
     }
 
     @Test
-    void run_shouldFetchAndSaveNewArticles() {
+    void run_shouldFetchAndSaveArticles() {
         final List<Article> articles = List.of(
                 article("1"),
                 article("2"),
@@ -77,20 +76,12 @@ class FetchArticlesTaskTest {
                 article("4"),
                 article("5")
         );
-        final List<Article> newArticles = List.of(
-                articles.get(2),
-                articles.get(3),
-                articles.get(4)
-        );
 
         when(articleFetcher.fetch(any())).thenReturn(articles);
-        when(articleRepository.filterOutExistingArticles(articles)).thenReturn(newArticles);
 
         task.run();
 
-        newArticles.forEach(article -> verify(articleRepository).save(article));
-        verify(articleRepository, never()).save(articles.get(0));
-        verify(articleRepository, never()).save(articles.get(1));
+        articles.forEach(article -> verify(articleRepository).save(article));
     }
 
     private Article article(final String articleId) {

@@ -5,7 +5,9 @@ import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.model.ArticleCategory;
 import no.toreb.nrknewsconsumer.model.ArticleMedia;
 import no.toreb.nrknewsconsumer.model.SortOrder;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -45,23 +47,6 @@ public class ArticleRepository {
     public ArticleRepository(final NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.rowMapper = new ArticleRowMapper(namedParameterJdbcTemplate);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Article> filterOutExistingArticles(final List<Article> articles) {
-        final String sql = "select article_id " +
-                           "from article " +
-                           "where article_id in (:articleIds)";
-
-        final List<String> articleIds = articles.stream()
-                                                .map(Article::getArticleId)
-                                                .toList();
-        final List<String> existingArticleIds =
-                namedParameterJdbcTemplate.queryForList(sql, Map.of("articleIds", articleIds), String.class);
-
-        return articles.stream()
-                       .filter(article -> !existingArticleIds.contains(article.getArticleId()))
-                       .toList();
     }
 
     @Transactional(readOnly = true)
@@ -245,10 +230,62 @@ public class ArticleRepository {
     }
 
     @Transactional
-    public void save(final Article article) {
-        final long genId = insertArticle(article);
+    public SaveResult save(final Article article) {
+        Long genId = getGenId(article.getArticleId());
+        final SaveResult result;
+        if (genId == null) {
+            genId = insertArticle(article);
+            result = SaveResult.INSERTED;
+        } else {
+            deleteArticleMedia(genId);
+            deleteArticleCategories(genId);
+            updateArticle(article, genId);
+            result = SaveResult.UPDATED;
+        }
+
         insertArticleMedia(article, genId);
         insertArticleCategories(article, genId);
+
+        return result;
+    }
+
+    private void deleteArticleMedia(final Long articleGenId) {
+        final String sql = "delete from article_media where article = :articleGenId";
+
+        namedParameterJdbcTemplate.update(sql, Map.of("articleGenId", articleGenId));
+    }
+
+    private void deleteArticleCategories(final Long articleGenId) {
+        final String sql = "delete from article_category where article = :articleGenId";
+
+        namedParameterJdbcTemplate.update(sql, Map.of("articleGenId", articleGenId));
+    }
+
+    private Long getGenId(final String articleId) {
+        final String sql = """
+                select gen_id from article
+                where article_id = :articleId
+                """;
+
+        return DataAccessUtils.singleResult(
+                namedParameterJdbcTemplate.query(sql,
+                                                 Map.of("articleId", articleId),
+                                                 new SingleColumnRowMapper<>(Long.class)));
+    }
+
+    private void updateArticle(final Article article, final Long articleGenId) {
+        final String sql = """
+                update article
+                set title = :title,
+                    description = :description,
+                    link = :link,
+                    author = :author,
+                    published_at = :publishedAt
+                where gen_id = :genId
+                """;
+
+        final SqlParameterSource params = toParameterSource(article).addValue("genId", articleGenId);
+        namedParameterJdbcTemplate.update(sql, params);
     }
 
     private long insertArticle(final Article article) {
@@ -259,20 +296,22 @@ public class ArticleRepository {
                            "    :articleId, :title, :description, :link, :author, :publishedAt" +
                            ")";
 
-        final SqlParameterSource params = new MapSqlParameterSource()
+        final KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        namedParameterJdbcTemplate.update(sql, toParameterSource(article), keyHolder, new String[] { "gen_id" });
+
+        //noinspection ConstantConditions
+        return keyHolder.getKey().longValue();
+    }
+
+    private MapSqlParameterSource toParameterSource(final Article article) {
+        return new MapSqlParameterSource()
                 .addValue("articleId", article.getArticleId())
                 .addValue("title", article.getTitle())
                 .addValue("description", article.getDescription())
                 .addValue("link", article.getLink())
                 .addValue("author", article.getAuthor())
                 .addValue("publishedAt", format(article.getPublishedAt()));
-
-        final KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        namedParameterJdbcTemplate.update(sql, params, keyHolder, new String[] { "gen_id" });
-
-        //noinspection ConstantConditions
-        return keyHolder.getKey().longValue();
     }
 
     private void insertArticleMedia(final Article article, final long articleGenId) {
