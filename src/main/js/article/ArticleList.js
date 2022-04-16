@@ -3,6 +3,8 @@ import WatchLaterIcon from "@material-ui/icons/WatchLater";
 import WatchLaterOutlinedIcon from "@material-ui/icons/WatchLaterOutlined";
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 
+const ONE_HOUR = 60 * 60 * 1000;
+
 export const Mode = {
     NON_HIDDEN: "non-hidden",
     HIDDEN: "hidden",
@@ -110,6 +112,11 @@ function ArticleList({ apiContextPath, mode }) {
             newArticleIndicators[0].scrollIntoView(true);
         }
     }, [articles]);
+
+    useEffect(() => {
+        const interval = setInterval(() => loadArticles(true), ONE_HOUR);
+        return () => clearInterval(interval)
+    }, []);
 
     const buttonStyle = {
         fontSize: '24px',
