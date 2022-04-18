@@ -105,6 +105,9 @@ function ArticleList({ apiContextPath, mode }) {
     useEffect(() => {
         window.scrollTo(0, 0);
         loadArticles();
+
+        const interval = setInterval(() => loadArticles(), ONE_HOUR);
+        return () => clearInterval(interval)
     }, [page, sortOrder]);
     useLayoutEffect(() => {
         const newArticleIndicators = document.getElementsByClassName('newArticleIndicator');
@@ -112,11 +115,6 @@ function ArticleList({ apiContextPath, mode }) {
             newArticleIndicators[0].scrollIntoView(true);
         }
     }, [articles]);
-
-    useEffect(() => {
-        const interval = setInterval(() => loadArticles(true), ONE_HOUR);
-        return () => clearInterval(interval)
-    }, []);
 
     const buttonStyle = {
         fontSize: '24px',
