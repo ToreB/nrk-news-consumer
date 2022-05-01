@@ -36,7 +36,7 @@ public class ArticleRepository {
             "%ukrain%", "%russland%", "%russer%", "%russar%", "%russisk%"
     );
     private static final List<String> COVID_19_PATTERNS = List.of(
-            "%korona%", "%covid%19%", "%vaksine%", "%vaksinasjon%", "%smitte%", "%pandemi%", "%epidemi%",
+            "%korona%", "%covid%19%", "%covid%", "%vaksine%", "%vaksinasjon%", "%smitte%", "%pandemi%", "%epidemi%",
             "%omikron%", "%omicron%", "%virus%"
     );
 
