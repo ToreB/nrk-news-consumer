@@ -1,0 +1,4 @@
+* text=auto
+
+bin/*.sh eol=lf
+*.sh text eol=lf
