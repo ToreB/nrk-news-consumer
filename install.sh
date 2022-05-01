@@ -2,6 +2,8 @@
 
 function exit_if_uncommitted_changes {
   path="$1"
+  git fetch
+  git status
   git diff-index --quiet HEAD -- "$path"
   ret_val=$?
   if [ $ret_val == 1 ]; then
