@@ -78,6 +78,9 @@ install_dir="P:/$app_name/"
 mkdir -p $install_dir
 mkdir -p $install_dir/logs
 
+echo "Moving scripts to $install_dir"
+cp -rf bin/* $install_dir/bin
+
 echo "Stopping running application"
 cd $install_dir
 sh bin/stop.sh
@@ -85,9 +88,6 @@ cd -
 
 echo "Moving $jar_file to $install_dir"
 cp -f target/$jar_file $install_dir
-
-echo "Moving scripts to $install_dir"
-cp -rf bin/* $install_dir/bin
 
 cd $install_dir
 
