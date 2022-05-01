@@ -6,4 +6,3 @@ cd $install_dir
 
 run_command=$(cat bin/run_command)
 nohup $run_command > /dev/null 2>&1 &
-echo $! > pid.txt
