@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class ArticleRepository {
 
     private static final List<String> UKRAINE_RUSSIA_PATTERNS = List.of(
-            "%ukrain%", "%russland%", "%russer%", "%russar%", "%russisk%"
+            "%ukrain%", "%russland%", "%russer%", "%russar%", "%russisk%", "%nato%"
     );
     private static final List<String> COVID_19_PATTERNS = List.of(
             "%korona%", "%covid%19%", "%covid%", "%vaksine%", "%vaksinasjon%", "%smitte%", "%pandemi%", "%epidemi%",
