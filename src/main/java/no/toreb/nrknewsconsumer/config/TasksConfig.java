@@ -16,34 +16,17 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.IntervalTask;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableConfigurationProperties
 class TasksConfig {
 
     @Bean
-    @ConfigurationProperties("task.fetch-toppsaker")
-    FetchArticlesTaskConfigProperties fetchToppsakerTaskConfigProps() {
-        return new FetchArticlesTaskConfigProperties();
-    }
-
-    @Bean
-    @ConfigurationProperties("task.fetch-coronavirus")
-    FetchArticlesTaskConfigProperties fetchCoronaVirusTaskConfigProps() {
-        return new FetchArticlesTaskConfigProperties();
-    }
-
-    @Bean
-    @ConfigurationProperties("task.fetch-urix")
-    FetchArticlesTaskConfigProperties fetchUrixTaskConfigProps() {
-        return new FetchArticlesTaskConfigProperties();
-    }
-
-    @Bean
-    @ConfigurationProperties("task.fetch-monkeypox")
-    FetchArticlesTaskConfigProperties fetchMonkeypoxConfigProps() {
-        return new FetchArticlesTaskConfigProperties();
+    @ConfigurationProperties("task.fetch-articles")
+    Map<String, FetchArticlesTaskConfigProperties> fetchArticlesConfigProps() {
+        return new HashMap<>();
     }
 
     @Configuration
@@ -51,7 +34,7 @@ class TasksConfig {
     @RequiredArgsConstructor
     static class SchedulingConfig implements SchedulingConfigurer {
 
-        private final List<FetchArticlesTaskConfigProperties> fetchArticlesTaskConfigProperties;
+        private final Map<String, FetchArticlesTaskConfigProperties> fetchArticlesTaskConfigProperties;
         private final ArticleRepository articleRepository;
         private final ArticleFetcher articleFetcher;
 
@@ -69,6 +52,7 @@ class TasksConfig {
         @Override
         public void configureTasks(final ScheduledTaskRegistrar taskRegistrar) {
             fetchArticlesTaskConfigProperties
+                    .values()
                     .stream()
                     .filter(FetchArticlesTaskConfigProperties::isEnabled)
                     .forEach(properties -> {
