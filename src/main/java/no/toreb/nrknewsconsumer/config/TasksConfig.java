@@ -36,7 +36,13 @@ class TasksConfig {
 
     @Bean
     @ConfigurationProperties("task.fetch-urix")
-    FetchArticlesTaskConfigProperties fetchTUrixTaskConfigProps() {
+    FetchArticlesTaskConfigProperties fetchUrixTaskConfigProps() {
+        return new FetchArticlesTaskConfigProperties();
+    }
+
+    @Bean
+    @ConfigurationProperties("task.fetch-monkeypox")
+    FetchArticlesTaskConfigProperties fetchMonkeypoxConfigProps() {
         return new FetchArticlesTaskConfigProperties();
     }
 

@@ -96,7 +96,7 @@ class NrkNewsConsumerApplicationTests {
                .untilAsserted(() -> {
                    try {
                        final long distinctUrls = urlCaptor.getAllValues().stream().distinct().count();
-                       assertThat(distinctUrls).isEqualTo(3);
+                       assertThat(distinctUrls).isEqualTo(4);
                        assertThat(getArticlesCount()).isEqualTo(99);
                    } catch (final Exception e) {
                        // Sqlite in-memory with shared cache throws exception if reading from db when other connection
