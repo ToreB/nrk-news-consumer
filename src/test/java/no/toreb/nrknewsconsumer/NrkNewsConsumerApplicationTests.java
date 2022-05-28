@@ -26,6 +26,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestTemplate;
 import org.sqlite.SQLiteException;
 
@@ -42,11 +43,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = NrkNewsConsumerApplication.class,
-                properties = {
-                        "spring.datasource.url=jdbc:sqlite:file::memory:?cache=shared",
-                        "spring.datasource.username=sa",
-                        "logging.level.no.toreb=debug"
-                }, webEnvironment = WebEnvironment.RANDOM_PORT)
+                webEnvironment = WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 class NrkNewsConsumerApplicationTests {
 
     @MockBean

@@ -17,6 +17,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -40,23 +41,25 @@ class ArticleRepositoryTest {
     @BeforeEach
     @FlywayTest
     void setUp() {
-        repository = new ArticleRepository(namedParameterJdbcTemplate);
+        repository = new ArticleRepository(namedParameterJdbcTemplate,
+                                           Collections.emptyList(),
+                                           Collections.emptyList());
     }
 
     @Test
     void save_whenArticleExist_shouldUpdateArticle() {
         final Article article = article("1")
-                .toBuilder()
-                .categories(Set.of(new ArticleCategory("cat1"),
-                                   new ArticleCategory("cat2")))
-                .media(Set.of(ArticleMedia.builder()
-                                          .url("url1")
-                                          .type("image")
-                                          .medium("image")
-                                          .credit("credit1")
-                                          .title("title1")
-                                          .build()))
-                .build();
+                                        .toBuilder()
+                                        .categories(Set.of(new ArticleCategory("cat1"),
+                                                           new ArticleCategory("cat2")))
+                                        .media(Set.of(ArticleMedia.builder()
+                                                                  .url("url1")
+                                                                  .type("image")
+                                                                  .medium("image")
+                                                                  .credit("credit1")
+                                                                  .title("title1")
+                                                                  .build()))
+                                        .build();
         repository.save(article);
 
         final Article updatedArticle = article.toBuilder()

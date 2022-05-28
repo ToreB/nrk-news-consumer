@@ -5,6 +5,7 @@ import no.toreb.nrknewsconsumer.model.Article;
 import no.toreb.nrknewsconsumer.model.ArticleCategory;
 import no.toreb.nrknewsconsumer.model.ArticleMedia;
 import no.toreb.nrknewsconsumer.model.SortOrder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -32,21 +33,20 @@ import java.util.stream.Collectors;
 @SuppressWarnings({ "java:S1192" })
 public class ArticleRepository {
 
-    private static final List<String> UKRAINE_RUSSIA_PATTERNS = List.of(
-            "%ukrain%", "%russland%", "%russer%", "%russar%", "%russisk%", "%nato%"
-    );
-    private static final List<String> DISEASE_PATTERNS = List.of(
-            "%korona%", "%covid%19%", "%covid%", "%vaksine%", "%vaksinasjon%", "%smitte%", "%pandemi%", "%epidemi%",
-            "%omikron%", "%omicron%", "%virus%"
-    );
-
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private final List<String> diseasePatterns;
+    private final List<String> ukraineRussiaPatterns;
 
     private final ArticleRowMapper rowMapper;
 
-    public ArticleRepository(final NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+    public ArticleRepository(final NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+                             @Value("${articles.filter.disease}") final List<String> diseasePatterns,
+                             @Value("${articles.filter.ukraine-russia}") final List<String> ukraineRussiaPatterns) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.rowMapper = new ArticleRowMapper(namedParameterJdbcTemplate);
+        // Allows for SQL injection through properties / environment, because why not?
+        this.diseasePatterns = List.copyOf(diseasePatterns);
+        this.ukraineRussiaPatterns = List.copyOf(ukraineRussiaPatterns);
     }
 
     @Transactional(readOnly = true)
@@ -160,7 +160,7 @@ public class ArticleRepository {
         final String sql = buildArticlesFilterSql(
                 "select *",
                 "order by published_at %s, gen_id %s".formatted(resolvedSortOrder, resolvedSortOrder),
-                DISEASE_PATTERNS,
+                diseasePatterns,
                 limit,
                 offset);
 
@@ -169,7 +169,7 @@ public class ArticleRepository {
 
     @Transactional(readOnly = true)
     public long countDisease() {
-        final String sql = buildArticlesFilterSql("select count(1)", null, DISEASE_PATTERNS, null, null);
+        final String sql = buildArticlesFilterSql("select count(1)", null, diseasePatterns, null, null);
 
         //noinspection ConstantConditions
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.emptyMap(), Long.class);
@@ -181,7 +181,7 @@ public class ArticleRepository {
         final String sql = buildArticlesFilterSql(
                 "select *",
                 "order by published_at %s, gen_id %s".formatted(resolvedSortOrder, resolvedSortOrder),
-                UKRAINE_RUSSIA_PATTERNS,
+                ukraineRussiaPatterns,
                 limit,
                 offset);
 
@@ -190,7 +190,7 @@ public class ArticleRepository {
 
     @Transactional(readOnly = true)
     public long countUkraineRussia() {
-        final String sql = buildArticlesFilterSql("select count(1)", null, UKRAINE_RUSSIA_PATTERNS, null, null);
+        final String sql = buildArticlesFilterSql("select count(1)", null, ukraineRussiaPatterns, null, null);
 
         //noinspection ConstantConditions
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.emptyMap(), Long.class);
