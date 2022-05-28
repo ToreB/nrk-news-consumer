@@ -120,12 +120,12 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    void shouldProvideApiForFetchingCovid19Articles() {
+    void shouldProvideApiForFetchingDiseaseArticles() {
         insertTestData();
 
-        final List<Article> covid19Articles = getAllCovid19Articles();
+        final List<Article> disease = getAllDiseaseArticles();
 
-        assertArticlesApi("/articles/covid-19", covid19Articles, SortOrder.ASC);
+        assertArticlesApi("/articles/disease", disease, SortOrder.ASC);
     }
 
     @Test
@@ -230,12 +230,12 @@ class NrkNewsConsumerApplicationTests {
     }
 
     @Test
-    void shouldProvideApiForFetchingCovid19ArticlesCount() {
+    void shouldProvideApiForFetchingDiseaseArticlesCount() {
         insertTestData();
 
-        final int articleCount = getAllCovid19Articles().size();
+        final int articleCount = getAllDiseaseArticles().size();
 
-        final ResponseEntity<ArticleResponse> response = testRestTemplate.exchange(getApiUrl("/articles/covid-19"),
+        final ResponseEntity<ArticleResponse> response = testRestTemplate.exchange(getApiUrl("/articles/disease"),
                                                                                    HttpMethod.GET,
                                                                                    null,
                                                                                    ArticleResponse.class);
@@ -297,7 +297,7 @@ class NrkNewsConsumerApplicationTests {
                                .collect(Collectors.toList());
     }
 
-    private List<Article> getAllCovid19Articles() {
+    private List<Article> getAllDiseaseArticles() {
         final String regex = "(.*?korona.*|covid[ -]?19|.*?vaksine.*|.*?smitte.*|.*?pandemi.*|.*?epidemi.*)";
         return getAllArticles()
                 .stream()

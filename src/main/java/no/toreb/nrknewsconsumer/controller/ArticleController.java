@@ -32,9 +32,9 @@ class ArticleController {
         return articleService.getAllReadLater(pageParam);
     }
 
-    @GetMapping("/covid-19")
-    public ArticleResponse getAllCovid19(final PageParam pageParam) {
-        return articleService.getAllCovid19(pageParam);
+    @GetMapping("/disease")
+    public ArticleResponse getAllDisease(final PageParam pageParam) {
+        return articleService.getAllDisease(pageParam);
     }
 
     @GetMapping("/ukraine-russia")

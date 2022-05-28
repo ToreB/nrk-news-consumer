@@ -8,7 +8,7 @@ const ONE_HOUR = 60 * 60 * 1000;
 export const Mode = {
     NON_HIDDEN: "non-hidden",
     HIDDEN: "hidden",
-    COVID_19: "covid-19",
+    DISEASE: "disease",
     UKRAINE_RUSSIA: "ukraine-russia",
     READ_LATER: "read-later"
 };

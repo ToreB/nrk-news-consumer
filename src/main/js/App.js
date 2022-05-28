@@ -50,8 +50,8 @@ function App({ buildProperties, apiContextPath }) {
                                element={<ArticlePage apiContextPath={apiContextPath} mode={Mode.HIDDEN} />} />
                         <Route path="/read-later"
                                element={<ArticlePage apiContextPath={apiContextPath} mode={Mode.READ_LATER} />} />
-                        <Route path="/covid-19"
-                               element={<ArticlePage apiContextPath={apiContextPath} mode={Mode.COVID_19} />} />
+                        <Route path="/disease"
+                               element={<ArticlePage apiContextPath={apiContextPath} mode={Mode.DISEASE} />} />
                         <Route path="/ukraine-russia"
                                element={<ArticlePage apiContextPath={apiContextPath} mode={Mode.UKRAINE_RUSSIA} />} />
                         <Route path="/"

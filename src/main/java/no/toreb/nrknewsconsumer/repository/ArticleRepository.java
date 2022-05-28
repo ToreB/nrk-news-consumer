@@ -35,7 +35,7 @@ public class ArticleRepository {
     private static final List<String> UKRAINE_RUSSIA_PATTERNS = List.of(
             "%ukrain%", "%russland%", "%russer%", "%russar%", "%russisk%", "%nato%"
     );
-    private static final List<String> COVID_19_PATTERNS = List.of(
+    private static final List<String> DISEASE_PATTERNS = List.of(
             "%korona%", "%covid%19%", "%covid%", "%vaksine%", "%vaksinasjon%", "%smitte%", "%pandemi%", "%epidemi%",
             "%omikron%", "%omicron%", "%virus%"
     );
@@ -155,12 +155,12 @@ public class ArticleRepository {
     }
 
     @Transactional(readOnly = true)
-    public List<Article> findAllCovid19(final int limit, final int offset, final SortOrder sortOrder) {
+    public List<Article> findAllDisease(final int limit, final int offset, final SortOrder sortOrder) {
         final SortOrder resolvedSortOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.ASC);
         final String sql = buildArticlesFilterSql(
                 "select *",
                 "order by published_at %s, gen_id %s".formatted(resolvedSortOrder, resolvedSortOrder),
-                COVID_19_PATTERNS,
+                DISEASE_PATTERNS,
                 limit,
                 offset);
 
@@ -168,8 +168,8 @@ public class ArticleRepository {
     }
 
     @Transactional(readOnly = true)
-    public long countCovid19() {
-        final String sql = buildArticlesFilterSql("select count(1)", null, COVID_19_PATTERNS, null, null);
+    public long countDisease() {
+        final String sql = buildArticlesFilterSql("select count(1)", null, DISEASE_PATTERNS, null, null);
 
         //noinspection ConstantConditions
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.emptyMap(), Long.class);

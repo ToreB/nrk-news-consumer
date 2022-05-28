@@ -44,11 +44,11 @@ public class ArticleService {
                                      articleRepository::countReadLater);
     }
 
-    public ArticleResponse getAllCovid19(final PageParam pageParam) {
-        return createArticleResponse(() -> articleRepository.findAllCovid19(pageParam.getSize(),
+    public ArticleResponse getAllDisease(final PageParam pageParam) {
+        return createArticleResponse(() -> articleRepository.findAllDisease(pageParam.getSize(),
                                                                             calculateOffset(pageParam),
                                                                             pageParam.getSortOrder()),
-                                     articleRepository::countCovid19);
+                                     articleRepository::countDisease);
     }
 
     public ArticleResponse getAllUkraineRussia(final PageParam pageParam) {
