@@ -35,8 +35,8 @@ public class ArticleFeedParser {
 
             final String articleId = extractArticleId(item);
             final String articleLink = item.optString("link", null);
-            if (articleId == null && !StringUtils.hasText(articleLink)) {
-                log.warn("Found article without ID and link. It will be skipped. Article: {}", item);
+            if (articleId == null || !StringUtils.hasText(articleLink)) {
+                log.warn("Found article without ID or link. It will be skipped. Article: {}", item);
                 return;
             }
 
