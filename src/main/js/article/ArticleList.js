@@ -1,4 +1,15 @@
-import { Button, Chip, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Switch } from "@material-ui/core";
+import {
+    Button,
+    Chip,
+    CircularProgress,
+    FormControl,
+    Grid,
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Select,
+    Switch
+} from "@material-ui/core";
 import WatchLaterIcon from "@material-ui/icons/WatchLater";
 import WatchLaterOutlinedIcon from "@material-ui/icons/WatchLaterOutlined";
 import React, { useEffect, useLayoutEffect, useState } from 'react';
@@ -63,7 +74,8 @@ function ArticleList({ apiContextPath, mode }) {
     const [hiddenToggledArticles, setHiddenToggledArticles] = useState([]);
     const [readLaterToggledArticles, setReadLaterToggledArticles] = useState([]);
     const [totalCountArticles, setTotalCountArticles] = useState(0);
-    const [sortOrder, setSortOrder] = useState(mode === Mode.HIDDEN ? SortOrder.DESC : SortOrder.ASC)
+    const [sortOrder, setSortOrder] = useState(mode === Mode.HIDDEN ? SortOrder.DESC : SortOrder.ASC);
+    const [isLoading, setIsLoading] = useState(true);
 
     const toggleArticleVisibilityFunction = (articleId, toggled, callback) => {
         toggleArticleVisibility(apiContextPath, articleId, toggled, callback);
@@ -84,8 +96,10 @@ function ArticleList({ apiContextPath, mode }) {
     };
 
     const loadArticles = (isReload = false) => {
+        setIsLoading(true);
         fetchArticles(apiContextPath, page, mode, sortOrder)
             .then(resultJson => {
+                setIsLoading(false);
                 setTotalCountArticles(resultJson.totalCount);
                 const fetchedArticles = resultJson.articles;
                 if (!isReload) {
@@ -97,7 +111,7 @@ function ArticleList({ apiContextPath, mode }) {
                     return { ...article, isNew: !articles.some(it => it.articleId === article.articleId) }
                 });
                 setArticles(newArticles);
-            })
+            });
         setHiddenToggledArticles([]);
         setReadLaterToggledArticles([]);
     };
@@ -135,6 +149,13 @@ function ArticleList({ apiContextPath, mode }) {
         display: mode === Mode.HIDDEN ? 'none' : 'block',
     };
 
+    const progressIndicatorContainerStyle = {
+        margin: '10px 10px 10px',
+        padding: '0px 25px',
+        width: '300px',
+        textAlign: 'center'
+    }
+
     const countToggledArticles = hiddenToggledArticles.length + readLaterToggledArticles.length;
     return (
         <div id="articles">
@@ -162,6 +183,11 @@ function ArticleList({ apiContextPath, mode }) {
                         </Grid>
                     </Grid>
                 </Grid>
+                {isLoading &&
+                    <div style={progressIndicatorContainerStyle}>
+                        <CircularProgress />
+                    </div>
+                }
                 {articles.map(article => {
                     return <ArticleElement key={article.articleId}
                                            article={article}
